@@ -7,12 +7,12 @@
 
 
 
-void setup(){
+void setup(void){
 	return;
 }
 
 
 
-void loop(){
+void loop(void){
 	return;
 }
