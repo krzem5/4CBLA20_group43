@@ -34,21 +34,21 @@ else:
 		object_files=[]
 		error=False
 		for file in _get_source_files("src/server"):
-			object_file=f"build/{file.replace('/','$')}.o"
+			object_file=f"build/server/{file.replace('/','$')}.o"
 			object_files.append(object_file)
 			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-mno-avx256-split-unaligned-load","-ffast-math","-momit-leaf-frame-pointer","-Ofast","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,f"-Isrc/server/include"]).returncode!=0):
 				error=True
-		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server","-X","-znoexecstack"]+object_files).returncode!=0):
+		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server/server","-X","-znoexecstack"]+object_files).returncode!=0):
 			sys.exit(1)
 	else:
 		object_files=[]
 		error=False
 		for file in _get_source_files("src/server"):
-			object_file=f"build/{file.replace('/','$')}.o"
+			object_file=f"build/server/{file.replace('/','$')}.o"
 			object_files.append(object_file)
 			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-O0","-ggdb","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,f"-Isrc/server/include"]).returncode!=0):
 				error=True
-		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server","-X","-znoexecstack"]+object_files).returncode!=0):
+		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server/server","-X","-znoexecstack"]+object_files).returncode!=0):
 			sys.exit(1)
 	if ("--run" in sys.argv):
-		subprocess.run(["build/server"])
+		subprocess.run(["build/server/server"])
