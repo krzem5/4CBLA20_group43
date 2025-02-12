@@ -22,26 +22,33 @@ def _get_source_files(*directories):
 
 if (not os.path.exists("build")):
 	os.mkdir("build")
-source_file_directory=("src/client" if "--client" in sys.argv else "src/server")
-if ("--release" in sys.argv):
-	object_files=[]
-	error=False
-	for file in _get_source_files(source_file_directory):
-		object_file=f"build/{file.replace('/','$')}.o"
-		object_files.append(object_file)
-		if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-mno-avx256-split-unaligned-load","-ffast-math","-momit-leaf-frame-pointer","-Ofast","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,f"-I{source_file_directory}/include"]).returncode!=0):
-			error=True
-	if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server","-X","-znoexecstack"]+object_files).returncode!=0):
+if (not os.path.exists("build/client")):
+	os.mkdir("build/client")
+if (not os.path.exists("build/server")):
+	os.mkdir("build/server")
+if ("--client" in sys.argv):
+	if (subprocess.run(["arduino-cli","compile","--fqbn","arduino:avr:uno","src/client","--build-path","build/client","-u","-p","/dev/ttyACM0"]).returncode!=0):
 		sys.exit(1)
 else:
-	object_files=[]
-	error=False
-	for file in _get_source_files(source_file_directory):
-		object_file=f"build/{file.replace('/','$')}.o"
-		object_files.append(object_file)
-		if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-O0","-ggdb","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,f"-I{source_file_directory}/include"]).returncode!=0):
-			error=True
-	if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server","-X","-znoexecstack"]+object_files).returncode!=0):
-		sys.exit(1)
-if ("--run" in sys.argv):
-	subprocess.run(["build/server"])
+	if ("--release" in sys.argv):
+		object_files=[]
+		error=False
+		for file in _get_source_files("src/server"):
+			object_file=f"build/{file.replace('/','$')}.o"
+			object_files.append(object_file)
+			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-mno-avx256-split-unaligned-load","-ffast-math","-momit-leaf-frame-pointer","-Ofast","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,f"-Isrc/server/include"]).returncode!=0):
+				error=True
+		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server","-X","-znoexecstack"]+object_files).returncode!=0):
+			sys.exit(1)
+	else:
+		object_files=[]
+		error=False
+		for file in _get_source_files("src/server"):
+			object_file=f"build/{file.replace('/','$')}.o"
+			object_files.append(object_file)
+			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-O0","-ggdb","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,f"-Isrc/server/include"]).returncode!=0):
+				error=True
+		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server","-X","-znoexecstack"]+object_files).returncode!=0):
+			sys.exit(1)
+	if ("--run" in sys.argv):
+		subprocess.run(["build/server"])
