@@ -8,11 +8,14 @@
 
 
 void setup(void){
-	return;
+	pinMode(LED_BUILTIN,OUTPUT);
 }
 
 
 
 void loop(void){
-	return;
+	digitalWrite(LED_BUILTIN,1);
+	delay(200);
+	digitalWrite(LED_BUILTIN,0);
+	delay(200);
 }
