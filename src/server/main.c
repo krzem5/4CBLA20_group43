@@ -23,5 +23,6 @@ int main(void){
 		serial_send(&packet,sizeof(packet_t));
 		usleep(250000);
 	}
+	serial_deinit();
 	return 0;
 }

@@ -59,6 +59,13 @@ _error:
 
 
 
+void serial_deinit(void){
+	ASSERT(!tcdrain(_serial_fd)&&!close(_serial_fd));
+	_serial_fd=-1;
+}
+
+
+
 void serial_send(const void* buffer,unsigned int length){
 	ASSERT(write(_serial_fd,buffer,length)==length);
 }

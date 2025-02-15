@@ -21,6 +21,10 @@ void serial_init(void);
 
 
 
+void serial_deinit(void);
+
+
+
 void serial_send(const void* buffer,unsigned int length);
 
 
