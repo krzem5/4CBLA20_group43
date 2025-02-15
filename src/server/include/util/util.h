@@ -14,7 +14,13 @@
 
 
 
-#define ASSERT(x) {if (!(x)){printf("%u(%s): %s: Assertion failed\n",__LINE__,__func__,#x);_Exit(1);}}
+#define ASSERT(x) \
+	{ \
+		if (!(x)){ \
+			printf("[%s:%u(%s)] %s: Assertion failed\n",__FILE__,__LINE__,__func__,#x); \
+			_Exit(1); \
+		} \
+	}
 
 
 
