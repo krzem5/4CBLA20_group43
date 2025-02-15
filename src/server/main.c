@@ -30,7 +30,16 @@ static void _process_terminal_command(void){
 			packet.led_state=0;
 			break;
 		case '2':
-			packet.led_state=1;
+			packet.led_state=64;
+			break;
+		case '3':
+			packet.led_state=128;
+			break;
+		case '4':
+			packet.led_state=196;
+			break;
+		case '5':
+			packet.led_state=255;
 			break;
 	}
 	packet.checksum=packet_compute_checksum(&packet);

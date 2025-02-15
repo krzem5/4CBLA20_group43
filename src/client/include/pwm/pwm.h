@@ -1,0 +1,42 @@
+/*
+ * Copyright (c) Krzesimir Hyżyk - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Created on 15/02/2025 by Krzesimir Hyżyk
+ */
+
+
+
+#ifndef _CLIENT_PWM_H_
+#define _CLIENT_PWM_H_ 1
+#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
+#define PWM_NO_MORE_PINS 255
+
+
+
+typedef uint8_t pwm_t;
+
+
+
+void pwm_init(void);
+
+
+
+pwm_t pwm_alloc(uint8_t pin);
+
+
+
+void pwm_set_pulse_width_us(pwm_t index,uint16_t us);
+
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif

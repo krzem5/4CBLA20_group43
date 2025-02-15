@@ -8,16 +8,19 @@
 
 
 #include <common/packet.h>
+#include <pwm/pwm.h>
 
 
 
 static packet_t _packet;
+static pwm_t _test_led_pwm;
 
 
 
 void setup(void){
+	pwm_init();
+	_test_led_pwm=pwm_alloc(LED_BUILTIN);
 	Serial.begin(115200);
-	pinMode(LED_BUILTIN,OUTPUT);
 }
 
 
@@ -30,5 +33,5 @@ void loop(void){
 		while (Serial.available()>0&&Serial.read()>=0);
 		return;
 	}
-	digitalWrite(LED_BUILTIN,!!_packet.led_state);
+	pwm_set_pulse_width_us(_test_led_pwm,_packet.led_state<<4);
 }
