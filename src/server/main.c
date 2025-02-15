@@ -20,7 +20,7 @@
 int main(void){
 	serial_init();
 	terminal_init();
-	struct pollfd fds[2]={
+	struct pollfd fds[1]={
 		{
 			.fd=0,
 			.events=POLLIN
