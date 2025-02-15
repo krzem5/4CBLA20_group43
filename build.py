@@ -6,8 +6,20 @@
 ############################################################################
 
 import os
+import stat
 import subprocess
 import sys
+
+
+
+def _get_serial_path():
+	if (not os.path.exists("/dev/serial/by-id")):
+		return None
+	for k in os.listdir("/dev/serial/by-id"):
+		path=f"/dev/serial/by-id/{k}"
+		if (stat.S_ISCHR(os.stat(path).st_mode)):
+			return path
+	return None
 
 
 
@@ -27,7 +39,8 @@ if (not os.path.exists("build/client")):
 if (not os.path.exists("build/server")):
 	os.mkdir("build/server")
 if ("--client" in sys.argv):
-	if (subprocess.run(["arduino-cli","compile","src/client","--build-path","build/client","--build-property","build.extra_flags=-Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -fdiagnostics-color=always","-b","arduino:avr:uno","-p","/dev/ttyACM0","-u","--warnings","all"]).returncode!=0):
+	serial_path=_get_serial_path()
+	if (subprocess.run(["arduino-cli","compile","src/client","--build-path","build/client","--build-property","build.extra_flags=-Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -fdiagnostics-color=always","-b","arduino:avr:uno","--warnings","all"]+(["-p",serial_path,"-u"] if serial_path is not None else [])).returncode!=0):
 		sys.exit(1)
 else:
 	if ("--release" in sys.argv):

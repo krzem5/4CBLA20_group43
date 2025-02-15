@@ -23,6 +23,9 @@ static int _serial_fd=-1;
 
 void serial_init(void){
 	DIR* dir=opendir("/dev/serial/by-id/");
+	if (!dir){
+		goto _error;
+	}
 	for (struct dirent* entry=readdir(dir);entry;entry=readdir(dir)){
 		if (entry->d_type!=DT_LNK){
 			continue;
@@ -36,18 +39,21 @@ void serial_init(void){
 			close(_serial_fd);
 			continue;
 		}
-		closedir(dir);
 		tty.c_iflag&=~(IGNBRK|IXON|IXANY|IXOFF);
 		tty.c_oflag=0;
 		tty.c_cflag=(tty.c_cflag&(~(CSIZE|CSTOPB|PARENB|PARODD|CRTSCTS)))|CS8|CREAD|CLOCAL|SERIAL_PARITY;
 		tty.c_lflag=0;
 		tty.c_cc[VMIN]=0;
 		tty.c_cc[VTIME]=0;
-		ASSERT(!cfsetospeed(&tty,SERIAL_SPEED)&&!cfsetispeed(&tty,SERIAL_SPEED));
-		ASSERT(!tcsetattr(_serial_fd,TCSANOW,&tty));
+		if (cfsetospeed(&tty,SERIAL_SPEED)||cfsetispeed(&tty,SERIAL_SPEED)||tcsetattr(_serial_fd,TCSANOW,&tty)){
+			close(_serial_fd);
+			continue;
+		}
+		closedir(dir);
 		return;
 	}
 	closedir(dir);
+_error:
 	ASSERT(!"No serial device found");
 }
 

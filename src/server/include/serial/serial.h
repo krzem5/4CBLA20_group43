@@ -12,7 +12,6 @@
 
 
 
-#define SERIAL_DEVICE "/dev/ttyACM0"
 #define SERIAL_SPEED B115200
 #define SERIAL_PARITY 0
 
