@@ -22,7 +22,7 @@ static int _serial_fd=-1;
 
 void serial_init(void){
 	_serial_fd=open(SERIAL_DEVICE,O_RDWR|O_NOCTTY|O_SYNC);
-	ASSERT(_serial_fd>=0);
+	ASSERT(_serial_fd>=0||!"Serial device not found");
 	struct termios tty;
 	ASSERT(!tcgetattr(_serial_fd,&tty));
 	tty.c_iflag&=~(IXON|IXOFF|IXANY|IGNBRK);
