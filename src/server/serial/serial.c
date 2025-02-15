@@ -25,9 +25,9 @@ void serial_init(void){
 	ASSERT(_serial_fd>=0||!"Serial device not found");
 	struct termios tty;
 	ASSERT(!tcgetattr(_serial_fd,&tty));
-	tty.c_iflag&=~(IXON|IXOFF|IXANY|IGNBRK);
+	tty.c_iflag&=~(IGNBRK|IXON|IXANY|IXOFF);
 	tty.c_oflag=0;
-	tty.c_cflag=(tty.c_cflag&(~(CSIZE|PARENB|PARODD|CSTOPB|CRTSCTS)))|CS8|CLOCAL|CREAD|SERIAL_PARITY;
+	tty.c_cflag=(tty.c_cflag&(~(CSIZE|CSTOPB|PARENB|PARODD|CRTSCTS)))|CS8|CREAD|CLOCAL|SERIAL_PARITY;
 	tty.c_lflag=0;
 	tty.c_cc[VMIN]=0;
 	tty.c_cc[VTIME]=0;
