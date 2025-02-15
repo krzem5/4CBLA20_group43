@@ -9,6 +9,7 @@
 
 #ifndef _COMMON_PACKET_H_
 #define _COMMON_PACKET_H_ 1
+#include <common/memory.h>
 #include <stdint.h>
 
 
@@ -23,11 +24,7 @@ typedef union __attribute__((packed)) _PACKET{
 
 
 
-#if defined(PROGMEM)
-static const PROGMEM uint16_t _packet_crc_table[]={
-#else
-static const uint16_t _packet_crc_table[]={
-#endif
+static const READ_ONLY_MEMORY uint16_t _packet_crc_table[]={
 	0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef,
 	0x1231,0x0210,0x3273,0x2252,0x52b5,0x4294,0x72f7,0x62d6,0x9339,0x8318,0xb37b,0xa35a,0xd3bd,0xc39c,0xf3ff,0xe3de,
 	0x2462,0x3443,0x0420,0x1401,0x64e6,0x74c7,0x44a4,0x5485,0xa56a,0xb54b,0x8528,0x9509,0xe5ee,0xf5cf,0xc5ac,0xd58d,
@@ -51,13 +48,7 @@ static const uint16_t _packet_crc_table[]={
 static inline uint16_t packet_compute_checksum(const packet_t* packet){
 	uint16_t out=0;
 	for (uint16_t i=__builtin_offsetof(packet_t,checksum)+sizeof(packet->checksum);i<sizeof(packet_t);i++){
-		const uint16_t* ptr=_packet_crc_table+((out&0xff)^packet->_bytes[i]);
-		out>>=8;
-#if defined(PROGMEM)
-		out^=pgm_read_word_near(ptr);
-#else
-		out^=*ptr;
-#endif
+		out=READ_ONLY_MEMORY_LOAD(_packet_crc_table+((out&0xff)^packet->_bytes[i]))^(out>>8);
 	}
 	return out;
 }

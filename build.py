@@ -27,7 +27,7 @@ if (not os.path.exists("build/client")):
 if (not os.path.exists("build/server")):
 	os.mkdir("build/server")
 if ("--client" in sys.argv):
-	if (subprocess.run(["arduino-cli","compile","--fqbn","arduino:avr:uno","src/client","--build-path","build/client","-u","-p","/dev/ttyACM0","--library","src/common/include/common"]).returncode!=0):
+	if (subprocess.run(["arduino-cli","compile","src/client","--build-path","build/client","--build-property","build.extra_flags=-Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -fdiagnostics-color=always","-b","arduino:avr:uno","-p","/dev/ttyACM0","-u","--warnings","all"]).returncode!=0):
 		sys.exit(1)
 else:
 	if ("--release" in sys.argv):
