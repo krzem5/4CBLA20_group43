@@ -23,7 +23,7 @@ void setup(void){
 
 
 void loop(void){
-	if (Serial.available()<sizeof(packet_t)||Serial.readBytes(_packet._bytes,sizeof(packet_t))<sizeof(packet_t)){
+	if (Serial.available()<sizeof(packet_t)||Serial.readBytes(_packet._raw_data,sizeof(packet_t))<sizeof(packet_t)){
 		return;
 	}
 	if (_packet.checksum!=packet_compute_checksum(&_packet)){
