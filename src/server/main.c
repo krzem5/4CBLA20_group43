@@ -16,6 +16,29 @@
 
 
 
+static _Bool _exit_program=0;
+
+
+
+static void _process_terminal_command(void){
+	packet_t packet;
+	switch (terminal_get_command()){
+		case 3:
+			_exit_program=1;
+			return;
+		case '1':
+			packet.led_state=0;
+			break;
+		case '2':
+			packet.led_state=1;
+			break;
+	}
+	packet.checksum=packet_compute_checksum(&packet);
+	serial_send(&packet,sizeof(packet_t));
+}
+
+
+
 int main(void){
 	serial_init();
 	terminal_init();
@@ -25,26 +48,15 @@ int main(void){
 			.events=POLLIN
 		}
 	};
-	packet_t packet;
-	while (poll(fds,1,-1)>0){
+	while (!_exit_program&&poll(fds,1,-1)>0){
 		if (fds[0].revents&POLLIN){
-			switch (terminal_get_command()){
-				case 3:
-					goto _cleanup;
-				case '1':
-					packet.led_state=0;
-					packet.checksum=packet_compute_checksum(&packet);
-					serial_send(&packet,sizeof(packet_t));
-					break;
-				case '2':
-					packet.led_state=1;
-					packet.checksum=packet_compute_checksum(&packet);
-					serial_send(&packet,sizeof(packet_t));
-					break;
-			}
+			_process_terminal_command();
 		}
 	}
-_cleanup:
+	packet_t packet;
+	packet.led_state=0;
+	packet.checksum=packet_compute_checksum(&packet);
+	serial_send(&packet,sizeof(packet_t));
 	terminal_deinit();
 	serial_deinit();
 	return 0;
