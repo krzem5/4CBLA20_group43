@@ -37,6 +37,6 @@ void serial_init(void){
 
 
 
-void serial_send_buffer(const void* buffer,unsigned int length){
+void serial_send(const void* buffer,unsigned int length){
 	ASSERT(write(_serial_fd,buffer,length)==length);
 }

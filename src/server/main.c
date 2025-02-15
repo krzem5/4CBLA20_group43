@@ -17,10 +17,10 @@
 int main(void){
 	serial_init();
 	packet_t packet;
-	for (uint32_t i=0;i<20;i++){
+	for (uint32_t i=0;i<10;i++){
 		packet.led_state=(i&1)^1;
-		serial_send_buffer(&packet,sizeof(packet_t));
-		usleep(100000);
+		serial_send(&packet,sizeof(packet_t));
+		usleep(250000);
 	}
 	return 0;
 }
