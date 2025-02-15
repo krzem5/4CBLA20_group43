@@ -21,8 +21,9 @@ static struct termios _terminal_restore_config;
 void terminal_init(void){
 	ASSERT(!tcgetattr(1,&_terminal_restore_config));
 	struct termios tty=_terminal_restore_config;
-	tty.c_iflag=(tty.c_iflag&(~(INLCR|IGNBRK)))|ICRNL;
-	tty.c_lflag=(tty.c_lflag&(~(ISIG|ICANON|ECHO)))|IEXTEN;
+	tty.c_iflag&=~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+	tty.c_oflag&=~OPOST;
+	tty.c_lflag&=~(ISIG|ICANON|ECHO|ECHONL|IEXTEN);
 	ASSERT(!tcsetattr(1,TCSANOW,&tty));
 }
 
