@@ -45,7 +45,7 @@ static const READ_ONLY_MEMORY uint16_t _packet_crc_table[]={
 
 
 
-static inline uint16_t packet_compute_checksum(const packet_t* packet){
+static uint16_t packet_compute_checksum(const packet_t* packet){
 	uint16_t out=0;
 	for (uint16_t i=__builtin_offsetof(packet_t,checksum)+sizeof(packet->checksum);i<sizeof(packet_t);i++){
 		out=READ_ONLY_MEMORY_LOAD(_packet_crc_table+((out&0xff)^packet->_bytes[i]))^(out>>8);
