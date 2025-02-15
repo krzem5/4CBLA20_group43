@@ -11,7 +11,6 @@
 #include <poll.h>
 #include <serial/serial.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <terminal/terminal.h>
 #include <unistd.h>
 
