@@ -23,7 +23,11 @@ void setup(void){
 
 
 void loop(void){
-	if (Serial.available()<sizeof(packet_t)||Serial.readBytes(_packet._bytes,sizeof(packet_t))<sizeof(packet_t)||_packet.checksum!=packet_compute_checksum(&_packet)){
+	if (Serial.available()<sizeof(packet_t)||Serial.readBytes(_packet._bytes,sizeof(packet_t))<sizeof(packet_t)){
+		return;
+	}
+	if (_packet.checksum!=packet_compute_checksum(&_packet)){
+		while (Serial.available()>0&&Serial.read()>=0);
 		return;
 	}
 	digitalWrite(LED_BUILTIN,!!_packet.led_state);
