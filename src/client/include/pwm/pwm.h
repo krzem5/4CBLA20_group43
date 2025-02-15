@@ -16,10 +16,6 @@ extern "C" {
 
 
 
-#define PWM_NO_MORE_PINS 255
-
-
-
 typedef uint8_t pwm_t;
 
 

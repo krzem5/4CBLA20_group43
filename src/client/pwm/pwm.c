@@ -12,8 +12,10 @@
 
 
 
-#define PWM_WINDOW_US 16000
-#define PWM_MIN_PULSE_US 4
+#define PWM_TICKS_PER_US_SHIFT (__builtin_ffs(F_CPU/8000000)-1)
+
+#define PWM_MIN_SAFE_LOW_PULSE_US 8000
+#define PWM_MIN_PULSE_US 2
 #define PWM_MAX_PULSE_US (0xffff>>PWM_PIN_BIT_COUNT)
 
 #define PWM_MAX_PIN_COUNT 8
@@ -32,15 +34,19 @@ SIGNAL(TIMER1_COMPA_vect){
 		_pwm_pin_index++;
 	}
 	else{
+_next_pin:
 		TCNT1=0;
 		_pwm_pin_index=0;
 	}
 	if (_pwm_pin_data[_pwm_pin_index]){
 		digitalWrite(_pwm_pin_data[_pwm_pin_index]&((1<<PWM_PIN_BIT_COUNT)-1),1);
-		OCR1A=TCNT1+(_pwm_pin_data[_pwm_pin_index]>>4);
+		OCR1A=TCNT1+((_pwm_pin_data[_pwm_pin_index]>>4)<<PWM_TICKS_PER_US_SHIFT);
+	}
+	else if (TCNT1<(PWM_MIN_SAFE_LOW_PULSE_US<<PWM_TICKS_PER_US_SHIFT)){
+		OCR1A=(PWM_MIN_SAFE_LOW_PULSE_US+PWM_MIN_PULSE_US)<<PWM_TICKS_PER_US_SHIFT;
 	}
 	else{
-		OCR1A=(TCNT1+PWM_MIN_PULSE_US<PWM_WINDOW_US?PWM_WINDOW_US:TCNT1+PWM_MIN_PULSE_US);
+		goto _next_pin;
 	}
 }
 
@@ -51,10 +57,10 @@ void pwm_init(void){
 		_pwm_pin_data[i]=0;
 	}
 	TCCR1A=0;
-	TCCR1B=1<<CS11; // divide 8 MHz clock by 8 to obtain 1 us tick duration
+	TCCR1B=1<<CS11; // divide by 8
 	TCNT1=0;
 	TIFR1=1<<OCF1A;
-	OCR1A=PWM_WINDOW_US;
+	OCR1A=PWM_MIN_SAFE_LOW_PULSE_US;
 	TIMSK1=1<<OCIE1A;
 }
 
@@ -64,7 +70,7 @@ pwm_t pwm_alloc(uint8_t pin){
 	pwm_t out=0;
 	for (;_pwm_pin_data[out];out++);
 	if (out==PWM_MAX_PIN_COUNT){
-		return PWM_NO_MORE_PINS;
+		for (;;);
 	}
 	pin&=(1<<PWM_PIN_BIT_COUNT)-1;
 	pinMode(pin,OUTPUT);
