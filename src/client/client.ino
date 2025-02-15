@@ -7,8 +7,11 @@
 
 
 
+#include "packet.h"
 
-static unsigned char _packet[1];
+
+
+static packet_t _packet;
 
 
 
@@ -20,10 +23,8 @@ void setup(void){
 
 
 void loop(void){
-	if (Serial.available()>0){
-		if (Serial.readBytes(_packet,sizeof(_packet))<sizeof(_packet)){
-			return;
-		}
-		digitalWrite(LED_BUILTIN,_packet[0]&1);
+	if (Serial.available()<sizeof(packet_t)||Serial.readBytes(_packet._bytes,sizeof(packet_t))<sizeof(packet_t)){
+		return;
 	}
+	digitalWrite(LED_BUILTIN,!!_packet.led_state);
 }
