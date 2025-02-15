@@ -49,10 +49,11 @@ int main(void){
 		},
 		{
 			.fd=0/*ds4_fd*/,
-			.events=POLLIN
+			.events=POLLIN,
+			.revents=0
 		}
 	};
-	while (!_exit_program&&poll(fds,1+(!!fds[1].fd),-1)>0){
+	while (!_exit_program&&poll(fds,1+(!!fds[1].fd),-1)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command();
 		}
