@@ -42,13 +42,17 @@ static void _process_terminal_command(void){
 int main(void){
 	serial_init();
 	terminal_init();
-	struct pollfd fds[1]={
+	struct pollfd fds[2]={
 		{
 			.fd=0,
 			.events=POLLIN
+		},
+		{
+			.fd=0/*ds4_fd*/,
+			.events=POLLIN
 		}
 	};
-	while (!_exit_program&&poll(fds,1,-1)>0){
+	while (!_exit_program&&poll(fds,1+(!!fds[1].fd),-1)>0){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command();
 		}
