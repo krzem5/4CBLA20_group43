@@ -30,7 +30,7 @@ void serial_init(void){
 	tty.c_cflag=(tty.c_cflag&(~(CSIZE|PARENB|PARODD|CSTOPB|CRTSCTS)))|CS8|CLOCAL|CREAD|SERIAL_PARITY;
 	tty.c_lflag=0;
 	tty.c_cc[VMIN]=0;
-	tty.c_cc[VTIME]=5;
+	tty.c_cc[VTIME]=0;
 	ASSERT(!cfsetospeed(&tty,SERIAL_SPEED)&&!cfsetispeed(&tty,SERIAL_SPEED));
 	ASSERT(!tcsetattr(_serial_fd,TCSANOW,&tty));
 }
