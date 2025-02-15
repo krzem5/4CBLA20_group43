@@ -11,6 +11,7 @@
 #include <serial/serial.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <stdio.h>
 
 
 
@@ -19,6 +20,8 @@ int main(void){
 	packet_t packet;
 	for (uint32_t i=0;i<10;i++){
 		packet.led_state=(i&1)^1;
+		packet.checksum=packet_compute_checksum(&packet);
+		printf("%04x\n",packet.checksum);
 		serial_send(&packet,sizeof(packet_t));
 		usleep(250000);
 	}
