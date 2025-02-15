@@ -47,7 +47,6 @@ SIGNAL(TIMER1_COMPA_vect){
 
 
 void pwm_init(void){
-	TIMSK1=0;
 	for (pwm_t i=0;i<PWM_MAX_PIN_COUNT+1;i++){
 		_pwm_pin_data[i]=0;
 	}
@@ -62,12 +61,13 @@ void pwm_init(void){
 
 
 pwm_t pwm_alloc(uint8_t pin){
-	pinMode(pin,OUTPUT);
 	pwm_t out=0;
 	for (;_pwm_pin_data[out];out++);
 	if (out==PWM_MAX_PIN_COUNT){
 		return PWM_NO_MORE_PINS;
 	}
+	pin&=(1<<PWM_PIN_BIT_COUNT)-1;
+	pinMode(pin,OUTPUT);
 	_pwm_pin_data[out]=pin|(PWM_MIN_PULSE_US<<PWM_PIN_BIT_COUNT);
 	return out;
 }
