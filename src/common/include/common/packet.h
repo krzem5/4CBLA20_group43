@@ -17,15 +17,15 @@ extern "C" {
 
 
 
-#define PACKET_VALID_CHECKSUM 0xca
+#define PACKET_CHECKSUM_START_VALUE 0x55
 
 
 
 typedef union __attribute__((packed)) _PACKET{
 	uint8_t _raw_data[0];
 	struct __attribute__((packed)){
-		uint8_t led_state;
 		uint8_t checksum;
+		uint8_t led_state;
 	};
 } packet_t;
 
@@ -41,7 +41,7 @@ static inline uint8_t packet_process_checksum_byte(uint8_t x,uint8_t y){
 
 
 
-void packet_append_checksum(packet_t* packet);
+void packet_generate_checksum(packet_t* packet);
 
 
 

@@ -25,10 +25,6 @@ void serial_init(void);
 
 
 
-_Bool serial_read(uint8_t* buffer,uint8_t length);
-
-
-
 _Bool serial_read_packet(packet_t* out);
 
 

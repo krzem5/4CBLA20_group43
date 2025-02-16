@@ -32,22 +32,12 @@ const ROM_DECL uint8_t _packet_crc_table[256]={
 	0x82,0xb3,0xe0,0xd1,0x46,0x77,0x24,0x15,0x3b,0x0a,0x59,0x68,0xff,0xce,0x9d,0xac,
 };
 
-static uint8_t _packet_inverse_crc_checksum=0;
 
 
-
-void packet_append_checksum(packet_t* packet){
-	if (PACKET_VALID_CHECKSUM&&!_packet_inverse_crc_checksum){
-		for (uint32_t i=0;i<256;i++){
-			if (_packet_crc_table[i]==PACKET_VALID_CHECKSUM){
-				_packet_inverse_crc_checksum=i;
-				break;
-			}
-		}
-	}
-	uint8_t checksum=0;
-	for (uint32_t i=0;i<sizeof(packet_t)-1;i++){
+void packet_generate_checksum(packet_t* packet){
+	uint8_t checksum=PACKET_CHECKSUM_START_VALUE;
+	for (uint8_t i=__builtin_offsetof(packet_t,checksum)+sizeof(packet->checksum);i<sizeof(packet_t);i++){
 		checksum=packet_process_checksum_byte(checksum,packet->_raw_data[i]);
 	}
-	packet->checksum=checksum^_packet_inverse_crc_checksum;
+	packet->checksum=checksum;
 }

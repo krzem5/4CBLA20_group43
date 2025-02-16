@@ -47,31 +47,18 @@ void serial_init(void){
 
 
 
-_Bool serial_read(uint8_t* buffer,uint8_t length){
-	if (((_serial_buffer_head-_serial_buffer_tail+SERIAL_BUFFER_SIZE)&(SERIAL_BUFFER_SIZE-1))<length){
-		return 0;
-	}
-	for (uint8_t i=0;i<length;i++){
-		buffer[i]=_serial_buffer[_serial_buffer_tail];
-		_serial_buffer_tail=(_serial_buffer_tail+1)&(SERIAL_BUFFER_SIZE-1);
-	}
-	return 1;
-}
-
-
-
 _Bool serial_read_packet(packet_t* out){
 	_Static_assert(SERIAL_BUFFER_SIZE>=sizeof(packet_t),"Serial buffer too small");
 	while (((_serial_buffer_head-_serial_buffer_tail+SERIAL_BUFFER_SIZE)&(SERIAL_BUFFER_SIZE-1))>=sizeof(packet_t)){
-		uint8_t checksum=0;
-		for (uint8_t i=0;i<sizeof(packet_t);i++){
+		uint8_t checksum=PACKET_CHECKSUM_START_VALUE;
+		for (uint8_t i=__builtin_offsetof(packet_t,checksum)+sizeof(out->checksum);i<sizeof(packet_t);i++){
 			checksum=packet_process_checksum_byte(checksum,_serial_buffer[(_serial_buffer_tail+i)&(SERIAL_BUFFER_SIZE-1)]);
 		}
-		if (checksum!=PACKET_VALID_CHECKSUM){
+		if (_serial_buffer[_serial_buffer_tail]!=checksum){
 			_serial_buffer_tail=(_serial_buffer_tail+1)&(SERIAL_BUFFER_SIZE-1);
 			continue;
 		}
-		for (uint8_t i=0;i<sizeof(packet_t);i++){
+		for (uint8_t i=__builtin_offsetof(packet_t,checksum)+sizeof(out->checksum);i<sizeof(packet_t);i++){
 			out->_raw_data[i]=_serial_buffer[(_serial_buffer_tail+i)&(SERIAL_BUFFER_SIZE-1)];
 		}
 		_serial_buffer_tail=(_serial_buffer_tail+sizeof(packet_t))&(SERIAL_BUFFER_SIZE-1);
