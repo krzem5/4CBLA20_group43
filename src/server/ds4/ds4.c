@@ -19,12 +19,19 @@
 
 void ds4_init(ds4_device_t* out){
 	out->fd=-1;
+	out->buttons=0;
+	out->lx=0;
+	out->ly=0;
+	out->rx=0;
+	out->ry=0;
+	out->l2=0;
+	out->r2=0;
+	out->battery=0;
 	struct udev* udev_ctx=udev_new();
 	struct udev_enumerate* dev_list=udev_enumerate_new(udev_ctx);
 	udev_enumerate_add_match_subsystem(dev_list,"hidraw");
 	udev_enumerate_scan_devices(dev_list);
-	struct udev_list_entry* entry=udev_enumerate_get_list_entry(dev_list);
-	while (out->fd<0&&entry){
+	for (struct udev_list_entry* entry=udev_enumerate_get_list_entry(dev_list);out->fd<0&&entry;entry=udev_list_entry_get_next(entry)){
 		struct udev_device* dev=udev_device_new_from_syspath(udev_ctx,udev_list_entry_get_name(entry));
 		struct udev_device* parent=udev_device_get_parent(dev);
 		if (!parent||strcmp(udev_device_get_subsystem(parent),"hid")){
@@ -40,7 +47,6 @@ void ds4_init(ds4_device_t* out){
 		}
 _cleanup_entry:
 		udev_device_unref(dev);
-		entry=udev_list_entry_get_next(entry);
 	}
 	udev_enumerate_unref(dev_list);
 	udev_unref(udev_ctx);

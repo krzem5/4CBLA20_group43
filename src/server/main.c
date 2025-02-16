@@ -18,6 +18,18 @@
 
 
 
+static const char* _horizontal_box_characters[]={
+	" ",
+	"▕",
+	"🮇",
+	"🮈",
+	"▐",
+	"🮉",
+	"🮊",
+	"🮋",
+	"█"
+};
+
 static _Bool _exit_program=0;
 
 
@@ -58,6 +70,21 @@ static void _process_controller_command(ds4_device_t* controller,packet_t* packe
 
 
 
+static void _update_ui(const ds4_device_t* controller,const packet_t* packet){
+	char battery_string[32];
+	if (controller->battery){
+		snprintf(battery_string,sizeof(battery_string),"\x1b[100;92m%02u%%\x1b[0m",controller->battery);
+	}
+	else{
+		snprintf(battery_string,sizeof(battery_string),"\x1b[100;92m🮙🮙🮙🮙\x1b[0m");
+	}
+	(void)_horizontal_box_characters;
+	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y:   \x1b[1;95m0\x1b[0m, Battery: %s",packet->test_servo_angle,battery_string);
+	fflush(stdout);
+}
+
+
+
 int main(void){
 	serial_init();
 	terminal_init();
@@ -88,8 +115,7 @@ int main(void){
 		}
 		packet_generate_checksum(&packet);
 		serial_send(&packet,sizeof(packet_t));
-		printf("\x1b[2K\r\x1b[0mX: \x1b[95m%3u\x1b[0m, Y:   \x1b[95m0\x1b[0m",packet.test_servo_angle);
-		fflush(stdout);
+		_update_ui(&controller,&packet);
 	}
 	printf("\x1b[?25h\r\n");
 	packet.test_servo_angle=90;
