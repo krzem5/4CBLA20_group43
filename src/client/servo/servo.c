@@ -13,11 +13,11 @@
 
 
 
-#define SERVO_MIN_ANGLE_PULSE_US 600
-#define SERVO_MAX_ANGLE_PULSE_US 2400
+#define SERVO_MIN_PULSE_US 600
+#define SERVO_US_PER_DEGREE 10
 
 
 
 void servo_set_angle(servo_t servo,uint8_t angle){
-	pwm_set_pulse_width_us(servo,SERVO_MIN_ANGLE_PULSE_US+(SERVO_MAX_ANGLE_PULSE_US-SERVO_MIN_ANGLE_PULSE_US)*angle/180);
+	pwm_set_pulse_width_us(servo,SERVO_MIN_PULSE_US+SERVO_US_PER_DEGREE*angle);
 }
