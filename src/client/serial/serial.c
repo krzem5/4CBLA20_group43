@@ -19,6 +19,19 @@
 
 
 
+#define BAUD SERIAL_BAUD_RATE
+#define BAUD_TOL 3
+#include <util/setbaud.h>
+#if USE_2X
+#define UCSR0A_INIT_VALUE (1<<U2X0)
+#else
+#define UCSR0A_INIT_VALUE 0
+#endif
+#define UBRR0H_INIT_VALUE UBRRH_VALUE
+#define UBRR0L_INIT_VALUE UBRRL_VALUE
+
+
+
 static volatile uint8_t _serial_buffer_head=0;
 static volatile uint8_t _serial_buffer_tail=0;
 static uint8_t _serial_buffer[SERIAL_BUFFER_SIZE];
@@ -42,21 +55,9 @@ ISR(USART_RX_vect){
 
 void serial_init(void){
 	UCSR0B=0;
-#define BAUD SERIAL_BAUD_RATE
-#define BAUD_TOL 3
-#include <util/setbaud.h>
-#if USE_2X
-	UCSR0A=1<<U2X0;
-#else
-	UCSR0A=0;
-#endif
-	UBRR0H=UBRRH_VALUE;
-	UBRR0L=UBRRL_VALUE;
-#undef BAUD
-#undef BAUD_TOL
-#undef USE_2X
-#undef UBRRH_VALUE
-#undef UBRRL_VALUE
+	UCSR0A=UCSR0A_INIT_VALUE;
+	UBRR0H=UBRR0H_INIT_VALUE;
+	UBRR0L=UBRR0L_INIT_VALUE;
 	UCSR0C=(1<<UCSZ00)|(1<<UCSZ01);
 	UCSR0B=(1<<RXEN0)|(1<<RXCIE0);
 }
