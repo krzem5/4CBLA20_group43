@@ -9,7 +9,7 @@
 
 #ifndef _GPIO_GPIO_H_
 #define _GPIO_GPIO_H_ 1
-#include <common/memory.h>
+#include <avr/io.h>
 #include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
@@ -17,28 +17,27 @@ extern "C" {
 
 
 
-extern const ROM_DECL uint16_t _gpio_pin_to_dir_reg[];
-extern const ROM_DECL uint16_t _gpio_pin_to_output_reg[];
-extern const ROM_DECL uint8_t _gpio_pin_to_mask[];
-
-
-
-static inline volatile uint8_t* _gpio_load_port(const void* base,uint8_t pin){
-	return (volatile uint8_t*)(void*)ROM_LOAD_U16(base+(pin&0xfe));
+static inline uint8_t _gpio_pin_to_mask(uint8_t pin){
+	return 1<<(pin&7);
 }
 
 
 
-static inline void gpio_init(uint8_t pin,_Bool output,_Bool state){
-	uint8_t mask=ROM_LOAD_U8(_gpio_pin_to_mask+pin);
-	volatile uint8_t* port=_gpio_load_port(_gpio_pin_to_output_reg,pin);
-	if (state){
-		(*port)|=mask;
-	}
-	else{
-		(*port)&=~mask;
-	}
-	port=_gpio_load_port(_gpio_pin_to_dir_reg,pin);
+static inline volatile uint8_t* _gpio_pin_to_dir_reg(uint8_t pin){
+	return (pin>7?&DDRB:&DDRD);
+}
+
+
+
+static inline volatile uint8_t* _gpio_pin_to_output_reg(uint8_t pin){
+	return (pin>7?&PORTB:&PORTD);
+}
+
+
+
+static inline void gpio_init(uint8_t pin,_Bool output){
+	uint8_t mask=_gpio_pin_to_mask(pin);
+	volatile uint8_t* port=_gpio_pin_to_dir_reg(pin);
 	if (output){
 		(*port)|=mask;
 	}
@@ -50,8 +49,8 @@ static inline void gpio_init(uint8_t pin,_Bool output,_Bool state){
 
 
 static inline void gpio_write(uint8_t pin,_Bool state){
-	uint8_t mask=ROM_LOAD_U8(_gpio_pin_to_mask+pin);
-	volatile uint8_t* port=_gpio_load_port(_gpio_pin_to_output_reg,pin);
+	uint8_t mask=_gpio_pin_to_mask(pin);
+	volatile uint8_t* port=_gpio_pin_to_output_reg(pin);
 	if (state){
 		(*port)|=mask;
 	}
