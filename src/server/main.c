@@ -18,18 +18,6 @@
 
 
 
-static const char* _horizontal_box_characters[]={
-	" ",
-	"▕",
-	"🮇",
-	"🮈",
-	"▐",
-	"🮉",
-	"🮊",
-	"🮋",
-	"█"
-};
-
 static _Bool _exit_program=0;
 
 
@@ -71,15 +59,10 @@ static void _process_controller_command(ds4_device_t* controller,packet_t* packe
 
 
 static void _update_ui(const ds4_device_t* controller,const packet_t* packet){
-	char battery_string[32];
+	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y:   \x1b[1;95m0\x1b[0m",packet->test_servo_angle);
 	if (controller->battery){
-		snprintf(battery_string,sizeof(battery_string),"\x1b[100;92m%02u%%\x1b[0m",controller->battery);
+		printf(", Battery: \x1b[92m%02u%%\x1b[0m",controller->battery*100/255);
 	}
-	else{
-		snprintf(battery_string,sizeof(battery_string),"\x1b[100;92m🮙🮙🮙🮙\x1b[0m");
-	}
-	(void)_horizontal_box_characters;
-	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y:   \x1b[1;95m0\x1b[0m, Battery: %s",packet->test_servo_angle,battery_string);
 	fflush(stdout);
 }
 

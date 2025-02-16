@@ -128,5 +128,5 @@ void ds4_recv(ds4_device_t* device){
 	device->ry=127-buffer[4];
 	device->l2=buffer[8];
 	device->r2=buffer[9];
-	device->battery=((buffer[30]&0xf)==11?0:buffer[30]<<5);
+	device->battery=buffer[12];
 }
