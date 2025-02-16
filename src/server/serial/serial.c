@@ -40,7 +40,7 @@ void serial_init(void){
 		}
 		tty.c_iflag&=~(IGNBRK|IXON|IXANY|IXOFF);
 		tty.c_oflag=0;
-		tty.c_cflag=(tty.c_cflag&(~(CSIZE|CSTOPB|PARENB|PARODD|CRTSCTS)))|CS8|CREAD|CLOCAL|SERIAL_PARITY;
+		tty.c_cflag=(tty.c_cflag&(~(HUPCL|CSIZE|CSTOPB|PARENB|PARODD|CRTSCTS)))|CS8|CREAD|CLOCAL|SERIAL_PARITY;
 		tty.c_lflag=0;
 		tty.c_cc[VMIN]=0;
 		tty.c_cc[VTIME]=0;

@@ -26,10 +26,6 @@ typedef union __attribute__((packed)) _PACKET{
 
 
 
-void packet_init(void);
-
-
-
 uint16_t packet_compute_checksum(const packet_t* packet);
 
 

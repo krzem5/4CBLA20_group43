@@ -21,7 +21,6 @@ static pwm_t _test_led_pwm;
 void setup(void){
 	serial_init();
 	pwm_init();
-	packet_init();
 	_test_led_pwm=pwm_alloc(LED_BUILTIN);
 }
 
