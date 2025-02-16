@@ -13,7 +13,7 @@
 
 
 
-const ROM_DECL uint16_t _gpio_pin_to_mode_reg[]={
+const ROM_DECL uint16_t _gpio_pin_to_dir_reg[]={
 	(uint16_t)(&DDRD),(uint16_t)(&DDRD),(uint16_t)(&DDRD),(uint16_t)(&DDRD),
 	(uint16_t)(&DDRB),(uint16_t)(&DDRB),(uint16_t)(&DDRB),
 	(uint16_t)(&DDRC),(uint16_t)(&DDRC),(uint16_t)(&DDRC)

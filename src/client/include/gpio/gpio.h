@@ -17,7 +17,7 @@ extern "C" {
 
 
 
-extern const ROM_DECL uint16_t _gpio_pin_to_mode_reg[];
+extern const ROM_DECL uint16_t _gpio_pin_to_dir_reg[];
 extern const ROM_DECL uint16_t _gpio_pin_to_output_reg[];
 extern const ROM_DECL uint8_t _gpio_pin_to_mask[];
 
@@ -29,10 +29,22 @@ static inline volatile uint8_t* _gpio_load_port(const void* base,uint8_t pin){
 
 
 
-static inline void gpio_init(uint8_t pin){
+static inline void gpio_init(uint8_t pin,_Bool output,_Bool state){
 	uint8_t mask=ROM_LOAD_U8(_gpio_pin_to_mask+pin);
-	(*_gpio_load_port(_gpio_pin_to_output_reg,pin))&=~mask;
-	(*_gpio_load_port(_gpio_pin_to_mode_reg,pin))|=mask;
+	volatile uint8_t* port=_gpio_load_port(_gpio_pin_to_output_reg,pin);
+	if (state){
+		(*port)|=mask;
+	}
+	else{
+		(*port)&=~mask;
+	}
+	port=_gpio_load_port(_gpio_pin_to_dir_reg,pin);
+	if (output){
+		(*port)|=mask;
+	}
+	else{
+		(*port)&=~mask;
+	}
 }
 
 

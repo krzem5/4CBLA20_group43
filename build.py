@@ -51,7 +51,7 @@ if (not os.path.exists("build/server")):
 if ("--client" in sys.argv):
 	serial_path=_get_serial_path()
 	_combine_client_files("src/client/_generated.c","src/client","src/common")
-	if (subprocess.run(["arduino-cli","compile","src/client","--build-path","build/client","--build-property","build.extra_flags=-Isrc/client/include -Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -fdiagnostics-color=always","-b","arduino:avr:uno","--warnings","all"]+(["-p",serial_path,"-u"] if serial_path is not None else [])).returncode):
+	if (subprocess.run(["arduino-cli","compile","src/client","--build-path","build/client","--build-property","build.extra_flags=-Isrc/client/include -Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -Wno-pointer-arith -fdiagnostics-color=always","-b","arduino:avr:uno","--warnings","all"]+(["-p",serial_path,"-u"] if serial_path is not None else [])).returncode):
 		sys.exit(1)
 else:
 	if ("--release" in sys.argv):

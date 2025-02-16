@@ -78,7 +78,7 @@ pwm_t pwm_alloc(uint8_t pin){
 		for (;;);
 	}
 	pin&=(1<<PWM_ENTRY_PIN_BIT_COUNT)-1;
-	gpio_init(pin);
+	gpio_init(pin,1,0);
 	_pwm_rr_scheduler_entries[out]=pin|(PWM_MIN_PULSE_US<<PWM_ENTRY_PIN_BIT_COUNT);
 	return out;
 }
