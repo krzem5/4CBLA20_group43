@@ -39,7 +39,7 @@ static inline void _fast_digital_pin_write(uint8_t pin,_Bool high){
 
 
 
-SIGNAL(TIMER1_COMPA_vect){
+ISR(TIMER1_COMPA_vect){
 	uint16_t entry=_pwm_data[_pwm_rr_scheduler_entry_index];
 	if (entry){
 		_fast_digital_pin_write(entry&((1<<PWM_PIN_BIT_COUNT)-1),0);
