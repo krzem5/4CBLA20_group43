@@ -51,6 +51,7 @@ static void _process_terminal_command(void){
 int main(void){
 	serial_init();
 	terminal_init();
+	packet_init();
 	struct pollfd fds[2]={
 		{
 			.fd=0,

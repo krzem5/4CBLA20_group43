@@ -12,7 +12,7 @@
 
 
 
-#define SERIAL_BUFFER_SIZE 32
+#define SERIAL_BUFFER_SIZE 16
 
 
 
