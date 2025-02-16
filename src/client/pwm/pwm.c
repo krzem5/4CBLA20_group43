@@ -67,7 +67,7 @@ _reset_rr_scheduler:
 
 void pwm_init(void){
 	TCCR1A=0;
-	TCCR1B=1<<CS11; // divide by 8 (see p110 of the datasheet)
+	TCCR1B=1<<CS11; // divide by 8
 	TCNT1=0;
 	TIFR1=(1<<TOV1)|(1<<OCF1A)|(1<<OCF1B)|(1<<ICF1);
 	OCR1A=PWM_MIN_PERIOD_US;
