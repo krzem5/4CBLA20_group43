@@ -8,9 +8,11 @@
 
 
 #include <common/packet.h>
+#include <ds4/ds4.h>
 #include <poll.h>
 #include <serial/serial.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <terminal/terminal.h>
 #include <unistd.h>
 
@@ -45,16 +47,30 @@ static void _process_terminal_command(packet_t* packet){
 
 
 
+static void _process_controller_command(ds4_device_t* controller,packet_t* packet){
+	ds4_recv(controller);
+	if (controller->buttons&DS4_BUTTON_LOGO){
+		_exit_program=1;
+		return;
+	}
+	packet->test_servo_angle=controller->l2*180/255;
+}
+
+
+
 int main(void){
 	serial_init();
 	terminal_init();
+	ds4_device_t controller;
+	ds4_init(&controller);
 	struct pollfd fds[2]={
 		{
 			.fd=0,
-			.events=POLLIN
+			.events=POLLIN,
+			.revents=0
 		},
 		{
-			.fd=0/*ds4_fd*/,
+			.fd=controller.fd,
 			.events=POLLIN,
 			.revents=0
 		}
@@ -62,16 +78,24 @@ int main(void){
 	packet_t packet={
 		.test_servo_angle=90
 	};
-	while (!_exit_program&&poll(fds,1+(!!fds[1].fd),20)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
+	printf("\x1b[?25l");
+	while (!_exit_program&&poll(fds,1+(controller.fd>=0),20)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command(&packet);
 		}
+		if (fds[1].revents&POLLIN){
+			_process_controller_command(&controller,&packet);
+		}
 		packet_generate_checksum(&packet);
 		serial_send(&packet,sizeof(packet_t));
+		printf("\x1b[2K\r\x1b[0mX: \x1b[95m%3u\x1b[0m, Y:   \x1b[95m0\x1b[0m",packet.test_servo_angle);
+		fflush(stdout);
 	}
+	printf("\x1b[?25h\r\n");
 	packet.test_servo_angle=90;
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
+	ds4_deinit(&controller);
 	terminal_deinit();
 	serial_deinit();
 	return 0;

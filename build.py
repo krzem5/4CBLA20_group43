@@ -64,7 +64,7 @@ else:
 			object_files.append(object_file)
 			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-mno-avx256-split-unaligned-load","-momit-leaf-frame-pointer","-O3","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/server/include","-Isrc/common/include"]).returncode):
 				error=True
-		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server/server","-X","-znoexecstack"]+object_files).returncode):
+		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server/server","-X","-znoexecstack"]+object_files+["-ludev"]).returncode):
 			sys.exit(1)
 	else:
 		object_files=[]
@@ -74,7 +74,7 @@ else:
 			object_files.append(object_file)
 			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-O0","-ggdb","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/server/include","-Isrc/common/include"]).returncode):
 				error=True
-		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server/server","-X","-znoexecstack"]+object_files).returncode):
+		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server/server","-X","-znoexecstack"]+object_files+["-ludev"]).returncode):
 			sys.exit(1)
 	if ("--run" in sys.argv):
 		subprocess.run(["build/server/server"])
