@@ -11,9 +11,6 @@
 #define _COMMON_PACKET_H_ 1
 #include <common/memory.h>
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -45,7 +42,4 @@ void packet_generate_checksum(packet_t* packet);
 
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif

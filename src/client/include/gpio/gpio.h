@@ -11,9 +11,6 @@
 #define _GPIO_GPIO_H_ 1
 #include <avr/io.h>
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -61,7 +58,4 @@ static inline void gpio_write(uint8_t pin,_Bool state){
 
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif

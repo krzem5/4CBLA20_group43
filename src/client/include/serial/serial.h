@@ -11,9 +11,6 @@
 #define _SERIAL_SERIAL_H_ 1
 #include <common/packet.h>
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -29,7 +26,4 @@ _Bool serial_read_packet(packet_t* out);
 
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif

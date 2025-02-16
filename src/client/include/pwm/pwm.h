@@ -10,9 +10,6 @@
 #ifndef _PWM_PWM_H_
 #define _PWM_PWM_H_ 1
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -32,7 +29,4 @@ void pwm_set_pulse_width_us(pwm_t index,uint16_t us);
 
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif

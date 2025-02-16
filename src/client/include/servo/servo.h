@@ -11,9 +11,6 @@
 #define _SERVO_SERVO_H_ 1
 #include <pwm/pwm.h>
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 
@@ -31,7 +28,4 @@ void servo_set_angle(servo_t servo,uint8_t angle);
 
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif
