@@ -7,6 +7,7 @@
 
 
 
+#include <avr/interrupt.h>
 #include <common/packet.h>
 #include <pwm/pwm.h>
 #include <serial/serial.h>
@@ -14,7 +15,7 @@
 
 
 int main(void){
-	init();
+	sei();
 	serial_init();
 	pwm_init();
 	pwm_t test_led_pwm=pwm_alloc(LED_BUILTIN);

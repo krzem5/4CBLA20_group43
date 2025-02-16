@@ -41,6 +41,7 @@ ISR(USART_RX_vect){
 
 
 void serial_init(void){
+	UCSR0B=0;
 #define BAUD SERIAL_BAUD_RATE
 #define BAUD_TOL 3
 #include <util/setbaud.h>
