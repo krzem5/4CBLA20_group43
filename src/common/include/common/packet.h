@@ -9,6 +9,7 @@
 
 #ifndef _COMMON_PACKET_H_
 #define _COMMON_PACKET_H_ 1
+#include <common/memory.h>
 #include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +27,17 @@ typedef union __attribute__((packed)) _PACKET{
 
 
 
-uint16_t packet_compute_checksum(const packet_t* packet);
+extern const ROM_DECL uint16_t _packet_crc_table[256];
+
+
+
+static inline uint16_t packet_checksum_process_byte(uint16_t x,uint8_t y){
+	return ROM_LOAD(_packet_crc_table+((x&0xff)^y))^(x>>8);
+}
+
+
+
+uint16_t packet_checksum_compute(const packet_t* packet);
 
 
 

@@ -13,7 +13,7 @@
 
 
 
-static const READ_ONLY_MEMORY uint16_t _packet_crc_table[256]={
+const ROM_DECL uint16_t _packet_crc_table[256]={
 	0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef,
 	0x1231,0x0210,0x3273,0x2252,0x52b5,0x4294,0x72f7,0x62d6,0x9339,0x8318,0xb37b,0xa35a,0xd3bd,0xc39c,0xf3ff,0xe3de,
 	0x2462,0x3443,0x0420,0x1401,0x64e6,0x74c7,0x44a4,0x5485,0xa56a,0xb54b,0x8528,0x9509,0xe5ee,0xf5cf,0xc5ac,0xd58d,
@@ -34,10 +34,10 @@ static const READ_ONLY_MEMORY uint16_t _packet_crc_table[256]={
 
 
 
-uint16_t packet_compute_checksum(const packet_t* packet){
+uint16_t packet_checksum_compute(const packet_t* packet){
 	uint16_t out=0;
 	for (uint16_t i=__builtin_offsetof(packet_t,checksum)+sizeof(packet->checksum);i<sizeof(packet_t);i++){
-		out=READ_ONLY_MEMORY_LOAD(_packet_crc_table+((out&0xff)^packet->_raw_data[i]))^(out>>8);
+		out=packet_checksum_process_byte(out,packet->_raw_data[i]);
 	}
 	return out;
 }

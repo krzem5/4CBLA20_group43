@@ -14,11 +14,11 @@
 
 
 #ifdef ARDUINO
-#define READ_ONLY_MEMORY PROGMEM
-#define READ_ONLY_MEMORY_LOAD(ptr) (pgm_read_word_near((ptr)))
+#define ROM_DECL PROGMEM
+#define ROM_LOAD(ptr) (pgm_read_word_near((ptr)))
 #else
-#define READ_ONLY_MEMORY
-#define READ_ONLY_MEMORY_LOAD(ptr) (*((const uint16_t*)(ptr)))
+#define ROM_DECL
+#define ROM_LOAD(ptr) (*((const uint16_t*)(ptr)))
 #endif
 
 

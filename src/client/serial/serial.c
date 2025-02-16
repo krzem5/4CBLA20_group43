@@ -7,6 +7,7 @@
 
 
 
+#include <common/packet.h>
 #include <serial/serial.h>
 #include <stdint.h>
 
@@ -55,4 +56,14 @@ _Bool serial_read(uint8_t* buffer,uint8_t length){
 		_serial_buffer_tail=(_serial_buffer_tail+1)&(SERIAL_BUFFER_SIZE-1);
 	}
 	return 1;
+}
+
+
+
+_Bool serial_read_packet(packet_t* out){
+	_Static_assert(SERIAL_BUFFER_SIZE>=sizeof(packet_t),"Serial buffer too small");
+	while (((_serial_buffer_head-_serial_buffer_tail+SERIAL_BUFFER_SIZE)&(SERIAL_BUFFER_SIZE-1))>=sizeof(packet_t)){
+		_serial_buffer_tail=(_serial_buffer_tail+1)&(SERIAL_BUFFER_SIZE-1);
+	}
+	return 0;
 }

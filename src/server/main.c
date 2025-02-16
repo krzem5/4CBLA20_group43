@@ -42,7 +42,7 @@ static void _process_terminal_command(void){
 			packet.led_state=255;
 			break;
 	}
-	packet.checksum=packet_compute_checksum(&packet);
+	packet.checksum=packet_checksum_compute(&packet);
 	serial_send(&packet,sizeof(packet_t));
 }
 
@@ -69,7 +69,7 @@ int main(void){
 	}
 	packet_t packet;
 	packet.led_state=0;
-	packet.checksum=packet_compute_checksum(&packet);
+	packet.checksum=packet_checksum_compute(&packet);
 	serial_send(&packet,sizeof(packet_t));
 	terminal_deinit();
 	serial_deinit();

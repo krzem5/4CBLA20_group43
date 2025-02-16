@@ -9,6 +9,7 @@
 
 #ifndef _SERIAL_SERIAL_H_
 #define _SERIAL_SERIAL_H_ 1
+#include <common/packet.h>
 #include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +26,10 @@ void serial_init(void);
 
 
 _Bool serial_read(uint8_t* buffer,uint8_t length);
+
+
+
+_Bool serial_read_packet(packet_t* out);
 
 
 
