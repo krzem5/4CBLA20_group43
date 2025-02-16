@@ -37,7 +37,7 @@ def _generate_client_sketch(dst_file_path,*directories):
 		os.mkdir(dst_file_path)
 	open(os.path.join(dst_file_path,f"{dst_file_path.rstrip('/').split('/')[-1]}.ino"),"w").close()
 	with open(os.path.join(dst_file_path,"weak_main_patch.h"),"w") as wf:
-		wf.write("#if !defined(__ASSEMBLER__)\nint main(void) __attribute__((weak));\n#endif\n")
+		wf.write("#ifndef __ASSEMBLER__\nint __attribute__((weak)) main(void);\n#endif\n")
 	with open(os.path.join(dst_file_path,"generated.c"),"w") as wf:
 		wf.write("#include <Arduino.h>\n")
 		for file in _get_source_files(*directories):
@@ -54,7 +54,7 @@ if (not os.path.exists("build/server")):
 if ("--client" in sys.argv):
 	serial_path=_get_serial_path()
 	_generate_client_sketch("build/client_sketch","src/client","src/common")
-	if (subprocess.run(["arduino-cli","compile","build/client_sketch","--build-path","build/client","--build-property","build.extra_flags=-Isrc/client/include -Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -Wno-pointer-arith -fdiagnostics-color=always -g0 --include build/client_sketch/weak_main_patch.h","-b","arduino:avr:uno","--warnings","all"]+(["-p",serial_path,"-u"] if serial_path is not None else [])).returncode):
+	if (subprocess.run(["arduino-cli","compile","build/client_sketch","--build-path","build/client","--build-property","build.extra_flags=-Isrc/client/include -Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -Wno-pointer-arith -fdiagnostics-color=always -g0 -Os --include build/client_sketch/weak_main_patch.h","-b","arduino:avr:uno","--warnings","all"]+(["-p",serial_path,"-u"] if serial_path is not None else [])).returncode):
 		sys.exit(1)
 else:
 	if ("--release" in sys.argv):
