@@ -13,20 +13,16 @@
 
 
 
-static packet_t _packet;
-static pwm_t _test_led_pwm;
-
-
-
 int main(void){
 	init();
 	serial_init();
 	pwm_init();
-	_test_led_pwm=pwm_alloc(LED_BUILTIN);
+	pwm_t test_led_pwm=pwm_alloc(LED_BUILTIN);
 	while (1){
-		if (!serial_read_packet(&_packet)){
+		packet_t packet;
+		if (!serial_read_packet(&packet)){
 			continue;
 		}
-		pwm_set_pulse_width_us(_test_led_pwm,_packet.led_state<<4);
+		pwm_set_pulse_width_us(test_led_pwm,packet.led_state<<4);
 	}
 }

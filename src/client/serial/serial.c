@@ -64,6 +64,7 @@ void serial_init(void){
 
 _Bool serial_read_packet(packet_t* out){
 	_Static_assert(SERIAL_BUFFER_SIZE>=sizeof(packet_t),"Serial buffer too small");
+	_Static_assert(!__builtin_offsetof(packet_t,checksum),"Incorrect checksum placement");
 	while (((_serial_buffer_tail-_serial_buffer_head+SERIAL_BUFFER_SIZE)&(SERIAL_BUFFER_SIZE-1))>=sizeof(packet_t)){
 		uint8_t checksum=PACKET_CHECKSUM_START_VALUE;
 		for (uint8_t i=__builtin_offsetof(packet_t,checksum)+sizeof(out->checksum);i<sizeof(packet_t);i++){

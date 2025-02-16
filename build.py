@@ -35,10 +35,10 @@ def _get_source_files(*directories):
 def _generate_client_sketch(dst_file_path,*directories):
 	if (not os.path.exists(dst_file_path)):
 		os.mkdir(dst_file_path)
-	open(dst_file_path+"/client_sketch.ino","w").close()
-	with open(dst_file_path+"/weak_main_patch.h","w") as wf:
+	open(os.path.join(dst_file_path,f"{dst_file_path.rstrip('/').split('/')[-1]}.ino"),"w").close()
+	with open(os.path.join(dst_file_path,"weak_main_patch.h"),"w") as wf:
 		wf.write("#if !defined(__ASSEMBLER__)\nint main(void) __attribute__((weak));\n#endif\n")
-	with open(dst_file_path+"/generated.c","w") as wf:
+	with open(os.path.join(dst_file_path,"generated.c"),"w") as wf:
 		wf.write("#include <Arduino.h>\n")
 		for file in _get_source_files(*directories):
 			wf.write(f"#include <{os.path.abspath(file)}>\n")
