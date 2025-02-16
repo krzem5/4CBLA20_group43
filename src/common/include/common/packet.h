@@ -22,7 +22,7 @@ typedef union __attribute__((packed)) _PACKET{
 	uint8_t _raw_data[0];
 	struct __attribute__((packed)){
 		uint8_t checksum;
-		uint8_t led_state;
+		uint8_t test_servo_angle;
 	};
 } packet_t;
 

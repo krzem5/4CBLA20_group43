@@ -87,9 +87,5 @@ pwm_t pwm_alloc(uint8_t pin){
 
 
 void pwm_set_pulse_width_us(pwm_t index,uint16_t us){
-	uint16_t value=(_pwm_rr_scheduler_entries[index]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|((us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_ENTRY_PIN_BIT_COUNT);
-	uint8_t status_reg_value=SREG;
-	cli();
-	_pwm_rr_scheduler_entries[index]=value;
-	SREG=status_reg_value;
+	_pwm_rr_scheduler_entries[index]=(_pwm_rr_scheduler_entries[index]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|((us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_ENTRY_PIN_BIT_COUNT);
 }

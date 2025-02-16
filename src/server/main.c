@@ -25,21 +25,22 @@ static void _process_terminal_command(void){
 	switch (terminal_get_command()){
 		case 3:
 			_exit_program=1;
+		default:
 			return;
 		case '1':
-			packet.led_state=0;
+			packet.test_servo_angle=0;
 			break;
 		case '2':
-			packet.led_state=64;
+			packet.test_servo_angle=45;
 			break;
 		case '3':
-			packet.led_state=128;
+			packet.test_servo_angle=90;
 			break;
 		case '4':
-			packet.led_state=196;
+			packet.test_servo_angle=135;
 			break;
 		case '5':
-			packet.led_state=255;
+			packet.test_servo_angle=180;
 			break;
 	}
 	packet_generate_checksum(&packet);
@@ -68,7 +69,7 @@ int main(void){
 		}
 	}
 	packet_t packet;
-	packet.led_state=0;
+	packet.test_servo_angle=90;
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
 	terminal_deinit();

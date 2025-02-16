@@ -9,8 +9,8 @@
 
 #include <avr/interrupt.h>
 #include <common/packet.h>
-#include <pwm/pwm.h>
 #include <serial/serial.h>
+#include <servo/servo.h>
 
 
 
@@ -18,12 +18,14 @@ int main(void){
 	sei();
 	serial_init();
 	pwm_init();
-	pwm_t test_led_pwm=pwm_alloc(13);
+	servo_t test_servo=servo_alloc(13);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)){
 			continue;
 		}
-		pwm_set_pulse_width_us(test_led_pwm,packet.led_state<<4);
+		cli();
+		servo_set_angle(test_servo,packet.test_servo_angle);
+		sei();
 	}
 }

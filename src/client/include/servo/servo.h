@@ -18,9 +18,7 @@ typedef pwm_t servo_t;
 
 
 
-static inline servo_t servo_alloc(uint8_t pin){
-	return pwm_alloc(pin);
-}
+servo_t servo_alloc(uint8_t pin);
 
 
 
