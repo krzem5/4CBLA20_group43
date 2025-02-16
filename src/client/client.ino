@@ -27,7 +27,7 @@ void setup(void){
 
 
 void loop(void){
-	if (!serial_read(_packet._raw_data,sizeof(packet_t))||_packet.checksum!=packet_checksum_compute(&_packet)){
+	if (!serial_read_packet(&_packet)){
 		return;
 	}
 	pwm_set_pulse_width_us(_test_led_pwm,_packet.led_state<<4);

@@ -17,27 +17,31 @@ extern "C" {
 
 
 
+#define PACKET_VALID_CHECKSUM 0xca
+
+
+
 typedef union __attribute__((packed)) _PACKET{
 	uint8_t _raw_data[0];
 	struct __attribute__((packed)){
-		uint16_t checksum;
 		uint8_t led_state;
+		uint8_t checksum;
 	};
 } packet_t;
 
 
 
-extern const ROM_DECL uint16_t _packet_crc_table[256];
+extern const ROM_DECL uint8_t _packet_crc_table[256];
 
 
 
-static inline uint16_t packet_checksum_process_byte(uint16_t x,uint8_t y){
-	return ROM_LOAD(_packet_crc_table+((x&0xff)^y))^(x>>8);
+static inline uint8_t packet_process_checksum_byte(uint8_t x,uint8_t y){
+	return ROM_LOAD(_packet_crc_table+(x^y));
 }
 
 
 
-uint16_t packet_checksum_compute(const packet_t* packet);
+void packet_append_checksum(packet_t* packet);
 
 
 
