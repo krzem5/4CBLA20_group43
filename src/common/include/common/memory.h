@@ -14,6 +14,7 @@
 
 
 #ifdef ARDUINO
+#include <avr/pgmspace.h>
 #define ROM_DECL PROGMEM
 #define ROM_LOAD(ptr) (pgm_read_word_near((ptr)))
 #else

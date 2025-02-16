@@ -7,6 +7,8 @@
 
 
 
+#include <avr/interrupt.h>
+#include <avr/io.h>
 #include <pwm/pwm.h>
 #include <stdint.h>
 
