@@ -36,7 +36,7 @@ extern const ROM_DECL uint8_t _packet_crc_table[256];
 
 
 static inline uint8_t packet_process_checksum_byte(uint8_t x,uint8_t y){
-	return ROM_LOAD(_packet_crc_table+(x^y));
+	return ROM_LOAD_U8(_packet_crc_table+(x^y));
 }
 
 
