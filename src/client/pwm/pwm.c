@@ -14,18 +14,21 @@
 
 
 
+#if (F_CPU/8000000)&(F_CPU/8000000-1)
+#error Clock ticks per us is not a power of 2
+#endif
 #define PWM_TICKS_PER_US_SHIFT (__builtin_ffs(F_CPU/8000000)-1)
 
 #define PWM_MIN_PERIOD_US 20000
 #define PWM_MIN_PULSE_US 4
-#define PWM_MAX_PULSE_US ((1<<((sizeof(_pwm_data[0])<<3)-PWM_PIN_BIT_COUNT))-1)
+#define PWM_MAX_PULSE_US ((1<<((sizeof(_pwm_data[0])<<3)-PWM_ENTRY_PIN_BIT_COUNT))-1)
 
-#define PWM_MAX_PIN_COUNT 8
-#define PWM_PIN_BIT_COUNT 4
+#define PWM_MAX_ENTRY_COUNT 8
+#define PWM_ENTRY_PIN_BIT_COUNT 4
 
 
 
-static volatile uint16_t __attribute__((section(".bss"))) _pwm_data[PWM_MAX_PIN_COUNT+1];
+static volatile uint16_t __attribute__((section(".bss"))) _pwm_data[PWM_MAX_ENTRY_COUNT+1];
 static pwm_t _pwm_rr_scheduler_entry_index=0;
 
 
@@ -44,7 +47,7 @@ static inline void _fast_digital_pin_write(uint8_t pin,_Bool high){
 ISR(TIMER1_COMPA_vect){
 	uint16_t entry=_pwm_data[_pwm_rr_scheduler_entry_index];
 	if (entry){
-		_fast_digital_pin_write(entry&((1<<PWM_PIN_BIT_COUNT)-1),0);
+		_fast_digital_pin_write(entry&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1),0);
 		_pwm_rr_scheduler_entry_index++;
 	}
 	else{
@@ -54,7 +57,7 @@ _reset_rr_scheduler:
 	}
 	entry=_pwm_data[_pwm_rr_scheduler_entry_index];
 	if (entry){
-		_fast_digital_pin_write(entry&((1<<PWM_PIN_BIT_COUNT)-1),1);
+		_fast_digital_pin_write(entry&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1),1);
 		OCR1A=TCNT1+((entry>>4)<<PWM_TICKS_PER_US_SHIFT);
 	}
 	else if (TCNT1<(PWM_MIN_PERIOD_US<<PWM_TICKS_PER_US_SHIFT)){
@@ -81,19 +84,19 @@ void pwm_init(void){
 pwm_t pwm_alloc(uint8_t pin){
 	pwm_t out=0;
 	for (;_pwm_data[out];out++);
-	if (out==PWM_MAX_PIN_COUNT){
+	if (out==PWM_MAX_ENTRY_COUNT){
 		for (;;);
 	}
-	pin&=(1<<PWM_PIN_BIT_COUNT)-1;
-	pinMode(pin,OUTPUT);
-	_pwm_data[out]=pin|(PWM_MIN_PULSE_US<<PWM_PIN_BIT_COUNT);
+	pin&=(1<<PWM_ENTRY_PIN_BIT_COUNT)-1;
+	(*portModeRegister(digitalPinToPort(pin)))|=digitalPinToBitMask(pin);
+	_pwm_data[out]=pin|(PWM_MIN_PULSE_US<<PWM_ENTRY_PIN_BIT_COUNT);
 	return out;
 }
 
 
 
 void pwm_set_pulse_width_us(pwm_t index,uint16_t us){
-	uint16_t value=(_pwm_data[index]&((1<<PWM_PIN_BIT_COUNT)-1))|((us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_PIN_BIT_COUNT);
+	uint16_t value=(_pwm_data[index]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|((us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_ENTRY_PIN_BIT_COUNT);
 	uint8_t status_reg_value=SREG;
 	cli();
 	_pwm_data[index]=value;
