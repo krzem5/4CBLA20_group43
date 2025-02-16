@@ -18,7 +18,7 @@ int main(void){
 	sei();
 	serial_init();
 	pwm_init();
-	pwm_t test_led_pwm=pwm_alloc(LED_BUILTIN);
+	pwm_t test_led_pwm=pwm_alloc(13);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)){

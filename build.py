@@ -39,7 +39,6 @@ def _generate_client_sketch(dst_file_path,*directories):
 	with open(os.path.join(dst_file_path,"weak_main_patch.h"),"w") as wf:
 		wf.write("#ifndef __ASSEMBLER__\nint __attribute__((weak)) main(void);\n#endif\n")
 	with open(os.path.join(dst_file_path,"generated.c"),"w") as wf:
-		wf.write("#include <Arduino.h>\n")
 		for file in _get_source_files(*directories):
 			wf.write(f"#include <{os.path.abspath(file)}>\n")
 
