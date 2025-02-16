@@ -13,7 +13,7 @@
 
 
 
-#ifdef ARDUINO
+#ifdef __AVR__
 #include <avr/pgmspace.h>
 #define ROM_DECL PROGMEM
 #define ROM_LOAD_U8(ptr) (pgm_read_byte_near((ptr)))

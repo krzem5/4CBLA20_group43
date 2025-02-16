@@ -34,21 +34,16 @@
 
 static volatile uint8_t _serial_buffer_head=0;
 static volatile uint8_t _serial_buffer_tail=0;
-static uint8_t _serial_buffer[SERIAL_BUFFER_SIZE];
+static volatile uint8_t _serial_buffer[SERIAL_BUFFER_SIZE];
 
 
 
 ISR(USART_RX_vect){
-	uint8_t c=UDR0;
-	if (UCSR0A&(1<<UPE0)){
-		return;
+	_serial_buffer[_serial_buffer_tail]=UDR0;
+	_serial_buffer_tail=(_serial_buffer_tail+1)&(SERIAL_BUFFER_SIZE-1);
+	if (_serial_buffer_tail==_serial_buffer_head){
+		_serial_buffer_head=(_serial_buffer_head+1)&(SERIAL_BUFFER_SIZE-1);
 	}
-	uint8_t i=(_serial_buffer_tail+1)&(SERIAL_BUFFER_SIZE-1);
-	if (i==_serial_buffer_head){
-		return;
-	}
-	_serial_buffer[_serial_buffer_tail]=c;
-	_serial_buffer_tail=i;
 }
 
 
@@ -67,20 +62,22 @@ void serial_init(void){
 _Bool serial_read_packet(packet_t* out){
 	_Static_assert(SERIAL_BUFFER_SIZE>=sizeof(packet_t),"Serial buffer too small");
 	_Static_assert(!__builtin_offsetof(packet_t,checksum),"Incorrect checksum placement");
-	while (((_serial_buffer_tail-_serial_buffer_head+SERIAL_BUFFER_SIZE)&(SERIAL_BUFFER_SIZE-1))>=sizeof(packet_t)){
+	while (1){
+		uint8_t head=_serial_buffer_head;
+		if (((_serial_buffer_tail-head+SERIAL_BUFFER_SIZE)&(SERIAL_BUFFER_SIZE-1))<sizeof(packet_t)){
+			return 0;
+		}
 		uint8_t checksum=PACKET_CHECKSUM_START_VALUE;
+		out->checksum=_serial_buffer[head];
 		for (uint8_t i=__builtin_offsetof(packet_t,checksum)+sizeof(out->checksum);i<sizeof(packet_t);i++){
-			checksum=packet_process_checksum_byte(checksum,_serial_buffer[(_serial_buffer_head+i)&(SERIAL_BUFFER_SIZE-1)]);
+			uint8_t c=_serial_buffer[(head+i)&(SERIAL_BUFFER_SIZE-1)];
+			checksum=packet_process_checksum_byte(checksum,c);
+			out->_raw_data[i]=c;
 		}
-		if (_serial_buffer[_serial_buffer_head]!=checksum){
-			_serial_buffer_head=(_serial_buffer_head+1)&(SERIAL_BUFFER_SIZE-1);
-			continue;
+		if (out->checksum==checksum){
+			_serial_buffer_head=(head+sizeof(packet_t))&(SERIAL_BUFFER_SIZE-1);
+			return 1;
 		}
-		for (uint8_t i=__builtin_offsetof(packet_t,checksum)+sizeof(out->checksum);i<sizeof(packet_t);i++){
-			out->_raw_data[i]=_serial_buffer[(_serial_buffer_head+i)&(SERIAL_BUFFER_SIZE-1)];
-		}
-		_serial_buffer_head=(_serial_buffer_head+sizeof(packet_t))&(SERIAL_BUFFER_SIZE-1);
-		return 1;
+		_serial_buffer_head=(head+1)&(SERIAL_BUFFER_SIZE-1);
 	}
-	return 0;
 }

@@ -20,31 +20,27 @@ static _Bool _exit_program=0;
 
 
 
-static void _process_terminal_command(void){
-	packet_t packet;
+static void _process_terminal_command(packet_t* packet){
 	switch (terminal_get_command()){
 		case 3:
 			_exit_program=1;
-		default:
 			return;
 		case '1':
-			packet.test_servo_angle=0;
-			break;
+			packet->test_servo_angle=0;
+			return;
 		case '2':
-			packet.test_servo_angle=45;
-			break;
+			packet->test_servo_angle=45;
+			return;
 		case '3':
-			packet.test_servo_angle=90;
-			break;
+			packet->test_servo_angle=90;
+			return;
 		case '4':
-			packet.test_servo_angle=135;
-			break;
+			packet->test_servo_angle=135;
+			return;
 		case '5':
-			packet.test_servo_angle=180;
-			break;
+			packet->test_servo_angle=180;
+			return;
 	}
-	packet_generate_checksum(&packet);
-	serial_send(&packet,sizeof(packet_t));
 }
 
 
@@ -63,12 +59,16 @@ int main(void){
 			.revents=0
 		}
 	};
-	while (!_exit_program&&poll(fds,1+(!!fds[1].fd),-1)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
+	packet_t packet={
+		.test_servo_angle=90
+	};
+	while (!_exit_program&&poll(fds,1+(!!fds[1].fd),20)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
 		if (fds[0].revents&POLLIN){
-			_process_terminal_command();
+			_process_terminal_command(&packet);
 		}
+		packet_generate_checksum(&packet);
+		serial_send(&packet,sizeof(packet_t));
 	}
-	packet_t packet;
 	packet.test_servo_angle=90;
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
