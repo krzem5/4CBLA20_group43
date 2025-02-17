@@ -32,18 +32,6 @@ def _get_source_files(*directories):
 
 
 
-def _generate_client_sketch(dst_file_path,*directories):
-	if (not os.path.exists(dst_file_path)):
-		os.mkdir(dst_file_path)
-	open(os.path.join(dst_file_path,f"{dst_file_path.rstrip('/').split('/')[-1]}.ino"),"w").close()
-	with open(os.path.join(dst_file_path,"weak_main_patch.h"),"w") as wf:
-		wf.write("#ifndef __ASSEMBLER__\nint __attribute__((weak)) main(void);\n#endif\n")
-	with open(os.path.join(dst_file_path,"all.c"),"w") as wf:
-		for file in _get_source_files(*directories):
-			wf.write(f"#include <{os.path.abspath(file)}>\n")
-
-
-
 if (not os.path.exists("build")):
 	os.mkdir("build")
 if (not os.path.exists("build/client")):
@@ -51,9 +39,17 @@ if (not os.path.exists("build/client")):
 if (not os.path.exists("build/server")):
 	os.mkdir("build/server")
 if ("--client" in sys.argv):
+	object_files=[]
+	error=False
+	for file in _get_source_files("src/client","src/common"):
+		object_file=f"build/client/{file.replace('/','$')}.o"
+		object_files.append(object_file)
+		if (subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fno-fat-lto-objects","-ffunction-sections","-fdata-sections","-O3","-g0","-c","-DNULL=((void*)0)","-DF_CPU=16000000l",file,"-o",object_file,"-Isrc/client/include","-Isrc/common/include"]).returncode):
+			error=True
+	if (error or subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fuse-linker-plugin","-Wl,--gc-sections","-O3","-g0","-o","build/client/client.elf"]+object_files).returncode or subprocess.run(["avr-objcopy","-O","ihex","-R",".eeprom","build/client/client.elf","build/client/client.hex"]).returncode):
+		sys.exit(1)
 	serial_path=_get_serial_path()
-	_generate_client_sketch("build/client_sketch","src/client","src/common")
-	if (subprocess.run(["arduino-cli","compile","build/client_sketch","--build-path","build/client","--build-property","build.extra_flags=-Isrc/client/include -Isrc/common/include -Wno-sign-compare -Wno-unused-parameter -Wno-pointer-arith -fdiagnostics-color=always -g0 -Os --include build/client_sketch/weak_main_patch.h","-b","arduino:avr:uno","--warnings","all"]+(["-p",serial_path,"-u"] if serial_path is not None else [])).returncode):
+	if (serial_path is not None and subprocess.run(["avrdude","-C/etc/avrdude.conf","-V","-q","-q","-patmega328p","-carduino",f"-P{serial_path}","-b115200","-D","-Uflash:w:build/client/client.hex:i"])):
 		sys.exit(1)
 else:
 	if ("--release" in sys.argv):
