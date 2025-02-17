@@ -36,8 +36,21 @@ if (not os.path.exists("build")):
 	os.mkdir("build")
 if (not os.path.exists("build/client")):
 	os.mkdir("build/client")
+if (not os.path.exists("build/sequencer_compiler")):
+	os.mkdir("build/sequencer_compiler")
 if (not os.path.exists("build/server")):
 	os.mkdir("build/server")
+object_files=[]
+error=False
+for file in _get_source_files("src/sequencer_compiler"):
+	object_file=f"build/sequencer_compiler/{file.replace('/','$')}.o"
+	object_files.append(object_file)
+	if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-momit-leaf-frame-pointer","-O3","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/sequencer_compiler/include"]).returncode):
+		error=True
+if (error or subprocess.run(["gcc","-O3","-g0","-o","build/sequencer_compiler/compiler"]+object_files).returncode):
+	sys.exit(1)
+subprocess.run(["build/sequencer_compiler/compiler","data/sequence.json","build/sequence.bin"])
+quit()
 if ("--client" in sys.argv):
 	object_files=[]
 	error=False
