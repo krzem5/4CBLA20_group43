@@ -43,6 +43,11 @@ typedef struct _DS4_DEVICE{
 	int8_t ry;
 	uint8_t l2;
 	uint8_t r2;
+	uint8_t led_red;
+	uint8_t led_green;
+	uint8_t led_blue;
+	uint8_t rumble_big;
+	uint8_t rumble_small;
 } ds4_device_t;
 
 
@@ -56,6 +61,10 @@ void ds4_deinit(ds4_device_t* device);
 
 
 void ds4_recv(ds4_device_t* device);
+
+
+
+void ds4_send(const ds4_device_t* device);
 
 
 

@@ -27,6 +27,11 @@ void ds4_init(ds4_device_t* out){
 	out->ry=0;
 	out->l2=0;
 	out->r2=0;
+	out->led_red=0;
+	out->led_green=0;
+	out->led_blue=0;
+	out->rumble_big=0;
+	out->rumble_small=0;
 	struct udev* udev_ctx=udev_new();
 	struct udev_enumerate* dev_list=udev_enumerate_new(udev_ctx);
 	udev_enumerate_add_match_subsystem(dev_list,"hidraw");
@@ -129,4 +134,22 @@ void ds4_recv(ds4_device_t* device){
 	device->ry=127-ptr[4];
 	device->l2=ptr[8];
 	device->r2=ptr[9];
+}
+
+
+
+
+void ds4_send(const ds4_device_t* device){
+	uint8_t buffer[32];
+	buffer[0]=0x05;
+	buffer[1]=0x7f;
+	buffer[2]=0x04;
+	buffer[4]=device->rumble_small;
+	buffer[5]=device->rumble_big;
+	buffer[6]=device->led_red;
+	buffer[7]=device->led_green;
+	buffer[8]=device->led_blue;
+	buffer[9]=0;
+	buffer[10]=0;
+	ASSERT(write(device->fd,buffer,sizeof(buffer))==sizeof(buffer));
 }
