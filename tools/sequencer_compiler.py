@@ -20,20 +20,14 @@ PWM_SEQUENCER_PIN_FLAG_INVERTED=0x40
 PWM_SEQUENCER_PIN_FLAG_LAST=0x80
 
 PWM_SEQUENCER_PULSE_ENCODING_FACTOR=10
-PWM_SEQUENCER_PULSE_ENCODING_CUTOFF=59
 
 ANGLE_TO_ENCODED_PULSE=lambda x:round((600+10*max(min(x,180),0))/PWM_SEQUENCER_PULSE_ENCODING_FACTOR)
-
-if (ANGLE_TO_ENCODED_PULSE(0)!=PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1):
-	raise RuntimeError("Incorrect cutoff")
-
-TIMER_VIRTUAL_DIVISOR=1
 
 
 
 def _generate_sequencer_header(dst_file_path,data):
 	channel_count=len(data)
-	sequencer_data=[channel_count|(TIMER_VIRTUAL_DIVISOR<<4),0,0]
+	sequencer_data=[0,0]
 	last_time=0
 	for i in range(0,channel_count):
 		pins=sorted(data[i]["pins"],reverse=True)
@@ -46,10 +40,10 @@ def _generate_sequencer_header(dst_file_path,data):
 		points=data[i]["points"]
 		for j in range(0,len(points)):
 			last_time=max(last_time,points[j][0])
-	sample_delta=TIMER_TICKS*TIMER_DIVISOR*TIMER_VIRTUAL_DIVISOR/CPU_FREQ
+	sample_delta=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
 	sample_count=math.ceil(last_time/sample_delta)+1
+	sequencer_data[0]=channel_count|((sample_count>>8)<<3)
 	sequencer_data[1]=sample_count&0xff
-	sequencer_data[2]=sample_count>>8
 	last_channel_offset=[0 for _ in range(0,channel_count)]
 	last_channel_value=[0 for _ in range(0,channel_count)]
 	last_channel_delta=[0 for _ in range(0,channel_count)]

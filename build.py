@@ -49,7 +49,7 @@ if ("--client" in sys.argv):
 	if (error or subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fuse-linker-plugin","-Wl,--gc-sections","-O3","-g0","-o","build/client/client.elf"]+object_files).returncode or subprocess.run(["avr-objcopy","-O","ihex","-R",".eeprom","build/client/client.elf","build/client/client.hex"]).returncode):
 		sys.exit(1)
 	serial_path=_get_client_device_path()
-	if (serial_path is not None and subprocess.run(["avrdude","-C/etc/avrdude.conf","-V","-q","-q","-patmega328p","-carduino",f"-P{serial_path}","-b115200","-D","-Uflash:w:build/client/client.hex:i"])):
+	if (serial_path is not None and subprocess.run(["avrdude","-C/etc/avrdude.conf","-V","-q","-q","-patmega328p","-carduino",f"-P{serial_path}","-b115200","-D","-Uflash:w:build/client/client.hex:i"]).returncode):
 		sys.exit(1)
 else:
 	if ("--release" in sys.argv):
