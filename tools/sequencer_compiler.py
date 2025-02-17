@@ -43,20 +43,16 @@ def _rasterize_channel(points,sample_count,sample_delta):
 
 
 def _reencode_channel(points):
+	value=0
 	out=[]
-	value=ANGLE_TO_ENCODED_PULSE(90)
-	LIMIT=16
-	graph=[]
 	for i in range(0,len(points)):
 		delta=points[i]-value
-		if (delta<-LIMIT):
-			delta=-LIMIT
-		elif (delta>LIMIT):
-			delta=LIMIT
+		if (delta<-16):
+			delta=-16
+		elif (delta>16):
+			delta=16
 		value+=delta
 		out.append(delta)
-		graph.append((i/len(points)*4.5,value/100))
-	print(graph)
 	return out
 
 
@@ -75,7 +71,6 @@ def _compress_channel(points):
 				out.append((token<<1)+1)
 			else:
 				out[-1]+=0x40
-	print(out,len(out))
 	return out
 
 
@@ -103,30 +98,7 @@ def compile_sequence(dst_file_path,data):
 	for i in range(0,channel_count):
 		channel_points[i]=_reencode_channel(channel_points[i])
 		channel_points[i]=_compress_channel(channel_points[i])
-	for i in range(0,channel_count):
-		pass
-	# last_channel_value=[0 for _ in range(0,channel_count)]
-	# last_channel_delta=[0 for _ in range(0,channel_count)]
-	# last_channel_repeat_byte_index=[0 for _ in range(0,channel_count)]
-	# for i in range(0,sample_count):
-	# 	for j in range(0,channel_count):
-	# 		delta=channel_points[j][i]
-	# 		# delta=channel_points[j][i]-last_channel_value[j]
-	# 		# if (delta<-64):
-	# 		# 	delta=-64
-	# 		# elif (delta>63):
-	# 		# 	delta=63
-	# 		# last_channel_value[j]+=delta
-	# 		if (last_channel_delta[j]!=delta):
-	# 			last_channel_delta[j]=delta
-	# 			last_channel_repeat_byte_index[j]=0
-	# 			sequencer_data.append((delta<<1)&0xff)
-	# 			continue
-	# 		if (last_channel_repeat_byte_index[j] and sequencer_data[last_channel_repeat_byte_index[j]]<0xff):
-	# 			sequencer_data[last_channel_repeat_byte_index[j]]+=2
-	# 		else:
-	# 			last_channel_repeat_byte_index[j]=len(sequencer_data)
-	# 			sequencer_data.append(0x01)
+	sequencer_data.extend(channel_points[0])
 	with open(dst_file_path,"w") as wf:
 		wf.write(f"/*\n * Copyright (c) Krzesimir Hyżyk - All Rights Reserved\n * Unauthorized copying of this file, via any medium is strictly prohibited\n * Proprietary and confidential\n * Created on 17/02/2025 by Krzesimir Hyżyk\n */\n\n\n\n#ifndef __SEQUENCER_GENERATED_H_\n#define __SEQUENCER_GENERATED_H_ 1\n#include <common/memory.h>\n#include <stdint.h>\n\n\n\nstatic const ROM_DECL uint8_t sequencer_generated_data[{len(sequencer_data)}]={{")
 		for i in range(0,len(sequencer_data)):

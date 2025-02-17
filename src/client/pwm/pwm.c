@@ -82,11 +82,16 @@ ISR(TIMER1_OVF_vect){
 		else{
 			uint8_t token=ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index);
 			_pwm_sequencer_data_index++;
-			if (token&1){
+			if (!(token&1)){
 				_pwm_sequencer_scratch_buffer[j+1]=token>>1;
+				_pwm_sequencer_scratch_buffer[j+2]=0;
+				i=_pwm_sequencer_scratch_buffer[j];
+				continue;
 			}
-			else{
-				_pwm_sequencer_scratch_buffer[j+2]=((int8_t)token)>>1;
+			_pwm_sequencer_scratch_buffer[j+1]=token>>6;
+			_pwm_sequencer_scratch_buffer[j+2]=((token>>2)&15)+1;
+			if (token&2){
+				_pwm_sequencer_scratch_buffer[j+2]=-_pwm_sequencer_scratch_buffer[j+2];
 			}
 		}
 		_pwm_sequencer_scratch_buffer[j+3]+=((int8_t)(_pwm_sequencer_scratch_buffer[j+2]));
