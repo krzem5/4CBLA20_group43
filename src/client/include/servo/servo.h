@@ -14,15 +14,11 @@
 
 
 
-typedef pwm_t servo_t;
+void servo_init_pin(uint8_t pin);
 
 
 
-servo_t servo_alloc(uint8_t pin);
-
-
-
-void servo_set_angle(servo_t servo,uint8_t angle);
+void servo_set_angle(uint8_t pin,uint8_t angle);
 
 
 

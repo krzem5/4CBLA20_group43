@@ -24,19 +24,18 @@
 #define PWM_TIMER_TICKS_PER_US_SHIFT (__builtin_ffs(F_CPU/8000000)-1)
 
 #define PWM_MIN_PERIOD_US 20000
-#define PWM_MIN_PULSE_US 4
-#define PWM_MAX_PULSE_US ((1<<((sizeof(_pwm_rr_scheduler_entries[0])<<3)-PWM_ENTRY_PIN_BIT_COUNT))-1)
+#define PWM_MIN_PULSE_US 2
+#define PWM_MAX_PULSE_US (0xffff>>PWM_TIMER_TICKS_PER_US_SHIFT)
 
-#define PWM_MAX_ENTRY_COUNT 8
-#define PWM_ENTRY_PIN_BIT_COUNT 4
+#define PWM_MAX_PIN_INDEX 13
 
 #define PWM_SEQUENCER_SCRTACH_BUFFER_SIZE 8
 
 
 
-static uint16_t __attribute__((section(".bss"))) _pwm_rr_scheduler_entries[PWM_MAX_ENTRY_COUNT+1];
+static uint16_t _pwm_rr_scheduler_entries[PWM_MAX_PIN_INDEX+1];
 static uint16_t _pwm_rr_scheduler_start_time=0;
-static pwm_t _pwm_rr_scheduler_entry_index=0;
+static uint8_t _pwm_rr_scheduler_entry_index=0;
 static uint8_t _pwm_sequencer_running=0;
 static uint8_t _pwm_sequencer_channel_count;
 static uint16_t _pwm_sequencer_sample_count;
@@ -46,16 +45,9 @@ static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_SCRTACH_BUFFER_SIZE];
 
 
 
-static inline void _update_entry_pulse_width(uint8_t i,uint16_t pulse){
-	_pwm_rr_scheduler_entries[i]=(_pwm_rr_scheduler_entries[i]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|pulse;
-}
-
-
-
 ISR(TIMER1_COMPA_vect){
-	uint16_t entry=_pwm_rr_scheduler_entries[_pwm_rr_scheduler_entry_index];
-	if (entry){
-		gpio_write(entry&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1),0);
+	if (_pwm_rr_scheduler_entry_index<=PWM_MAX_PIN_INDEX){
+		gpio_write(_pwm_rr_scheduler_entry_index,0);
 		_pwm_rr_scheduler_entry_index++;
 	}
 	else{
@@ -63,10 +55,9 @@ _reset_rr_scheduler:
 		_pwm_rr_scheduler_start_time=TCNT1;
 		_pwm_rr_scheduler_entry_index=0;
 	}
-	entry=_pwm_rr_scheduler_entries[_pwm_rr_scheduler_entry_index];
-	if (entry){
-		gpio_write(entry&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1),1);
-		OCR1A=TCNT1+(entry>>(PWM_ENTRY_PIN_BIT_COUNT-PWM_TIMER_TICKS_PER_US_SHIFT));
+	if (_pwm_rr_scheduler_entry_index<=PWM_MAX_PIN_INDEX){
+		gpio_write(_pwm_rr_scheduler_entry_index,1);
+		OCR1A=TCNT1+_pwm_rr_scheduler_entries[_pwm_rr_scheduler_entry_index];
 	}
 	else if (TCNT1-_pwm_rr_scheduler_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
 		OCR1A=_pwm_rr_scheduler_start_time+((PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT);
@@ -99,13 +90,13 @@ ISR(TIMER1_OVF_vect){
 			}
 		}
 		_pwm_sequencer_scratch_buffer[j+3]+=((int8_t)(_pwm_sequencer_scratch_buffer[j+2]));
-		uint16_t pulse=(_pwm_sequencer_scratch_buffer[j+3]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT;
+		uint16_t pulse=(_pwm_sequencer_scratch_buffer[j+3]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT;
 		for (uint16_t k=_pwm_sequencer_scratch_buffer[j];i<k;i++){
 			uint8_t k=ROM_LOAD_U8(sequencer_generated_data+i);
 			if (k&PWM_SEQUENCER_PIN_FLAG_INVERTED){
-				pulse=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT)-pulse;
+				pulse=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse;
 			}
-			_update_entry_pulse_width(k&PWM_SEQUENCER_PIN_MASK,pulse);
+			_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]=pulse;
 		}
 	}
 	_pwm_sequencer_sample_index++;
@@ -118,6 +109,9 @@ ISR(TIMER1_OVF_vect){
 
 
 void pwm_init(void){
+	for (uint8_t i=0;i<=PWM_MAX_PIN_INDEX;i++){
+		_pwm_rr_scheduler_entries[i]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	}
 	TCCR1A=0;
 	TCCR1B=1<<CS11; // divide by 8
 	TCNT1=0;
@@ -128,26 +122,19 @@ void pwm_init(void){
 
 
 
-pwm_t pwm_alloc(uint8_t pin){
-	pwm_t out=0;
-	for (;_pwm_rr_scheduler_entries[out];out++);
-	if (out==PWM_MAX_ENTRY_COUNT){
-		for (;;);
-	}
-	pin&=(1<<PWM_ENTRY_PIN_BIT_COUNT)-1;
+void pwm_init_pin(uint8_t pin){
 	gpio_init(pin,1);
 	gpio_write(pin,0);
-	_pwm_rr_scheduler_entries[out]=pin|(PWM_MIN_PULSE_US<<PWM_ENTRY_PIN_BIT_COUNT);
-	return out;
+	_pwm_rr_scheduler_entries[pin]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
 }
 
 
 
-void pwm_set_pulse_width_us(pwm_t index,uint16_t us){
+void pwm_set_pulse_width_us(uint8_t pin,uint16_t us){
 	if (_pwm_sequencer_running){
 		return;
 	}
-	_update_entry_pulse_width(index,(us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_ENTRY_PIN_BIT_COUNT);
+	_pwm_rr_scheduler_entries[pin]=(us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_TIMER_TICKS_PER_US_SHIFT;
 }
 
 

@@ -13,19 +13,15 @@
 
 
 
-typedef uint8_t pwm_t;
-
-
-
 void pwm_init(void);
 
 
 
-pwm_t pwm_alloc(uint8_t pin);
+void pwm_init_pin(uint8_t pin);
 
 
 
-void pwm_set_pulse_width_us(pwm_t index,uint16_t us);
+void pwm_set_pulse_width_us(uint8_t pin,uint16_t us);
 
 
 

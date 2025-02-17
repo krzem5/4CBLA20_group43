@@ -18,14 +18,13 @@
 
 
 
-servo_t servo_alloc(uint8_t pin){
-	pwm_t out=pwm_alloc(pin);
-	servo_set_angle(out,90);
-	return out;
+void servo_init_pin(uint8_t pin){
+	pwm_init_pin(pin);
+	servo_set_angle(pin,90);
 }
 
 
 
-void servo_set_angle(servo_t servo,uint8_t angle){
-	pwm_set_pulse_width_us(servo,SERVO_MIN_PULSE_US+SERVO_US_PER_DEGREE*((uint16_t)(angle>180?180:angle)));
+void servo_set_angle(uint8_t pin,uint8_t angle){
+	pwm_set_pulse_width_us(pin,SERVO_MIN_PULSE_US+SERVO_US_PER_DEGREE*((uint16_t)(angle>180?180:angle)));
 }
