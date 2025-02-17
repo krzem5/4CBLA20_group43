@@ -35,11 +35,13 @@ def _generate_sequencer_header(dst_file_path,data):
 	channel_count=len(data)
 	sequencer_data=[channel_count|(TIMER_VIRTUAL_DIVISOR<<4),0,0]
 	last_time=0
-	for channel in data:
-		for i,k in enumerate(channel["pins"]):
-			sequencer_data.append((PWM_SEQUENCER_PIN_FLAG_INVERTED|(~k) if k<0 else k)+(PWM_SEQUENCER_PIN_FLAG_LAST if i==len(channel["pins"])-1 else 0))
-		for k in channel["points"]:
-			last_time=max(last_time,k[0])
+	for i in range(0,channel_count):
+		pins=data[i]["pins"]
+		for j in range(0,len(pins)):
+			sequencer_data.append((pins[j]^(pins[j]>>7))+(PWM_SEQUENCER_PIN_FLAG_INVERTED if pins[j]<0 else 0)+(PWM_SEQUENCER_PIN_FLAG_LAST if i==len(pins)-1 else 0))
+		points=data[i]["points"]
+		for j in range(0,len(points)):
+			last_time=max(last_time,points[j][0])
 	sample_delta=TIMER_TICKS*TIMER_DIVISOR*TIMER_VIRTUAL_DIVISOR/CPU_FREQ
 	sample_count=math.ceil(last_time/sample_delta)+1
 	sequencer_data[1]=sample_count&0xff
