@@ -1,7 +1,5 @@
 # 4CBLA20 Group 43
 
-This repository has no documentation or commit history, as it only exists to showcase the source code of the flight path optimization program used by me during the design process of the launcher mechanism during the CBL course. Note that this repository will be deleted exactly **TWO WEEKS** after the due date of the final CBL assignment (the end of the examination period). If for any reason the access to this source code is required past the aforementioned deadline, feel free to contact me (Krzesimir Hyżyk) via email to resolve this issue.
-
 By accessing any file in this repository you hereby agree to abide by the terms and conditions outlined in the Disclaimer below:
 
 ## Disclaimer
