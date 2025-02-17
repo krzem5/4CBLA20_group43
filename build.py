@@ -44,9 +44,9 @@ if ("--client" in sys.argv):
 	for file in _get_source_files("src/client","src/common"):
 		object_file=f"build/client/{file.replace('/','$')}.o"
 		object_files.append(object_file)
-		if (subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fno-fat-lto-objects","-ffunction-sections","-fdata-sections","-O3","-g0","-c","-DNULL=((void*)0)","-DF_CPU=16000000l",file,"-o",object_file,"-Isrc/client/include","-Isrc/common/include"]).returncode):
+		if (subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fno-fat-lto-objects","-ffunction-sections","-fdata-sections","-Os","-g0","-c","-DNULL=((void*)0)","-DF_CPU=16000000l",file,"-o",object_file,"-Isrc/client/include","-Isrc/common/include"]).returncode):
 			error=True
-	if (error or subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fuse-linker-plugin","-Wl,--gc-sections","-O3","-g0","-o","build/client/client.elf"]+object_files).returncode or subprocess.run(["avr-objcopy","-O","ihex","-R",".eeprom","build/client/client.elf","build/client/client.hex"]).returncode):
+	if (error or subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fuse-linker-plugin","-Wl,--gc-sections","-Os","-g0","-o","build/client/client.elf"]+object_files).returncode or subprocess.run(["avr-objcopy","-O","ihex","-R",".eeprom","build/client/client.elf","build/client/client.hex"]).returncode):
 		sys.exit(1)
 	serial_path=_get_client_device_path()
 	if (serial_path is not None and subprocess.run(["avrdude","-C/etc/avrdude.conf","-V","-q","-q","-patmega328p","-carduino",f"-P{serial_path}","-b115200","-D","-Uflash:w:build/client/client.hex:i"]).returncode):

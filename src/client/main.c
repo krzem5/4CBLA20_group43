@@ -15,7 +15,7 @@
 
 
 
-// Pin numbering:
+// PWM/Servo pin numbering:
 //  0 => D8
 //  1 => D9
 //  2 => D10
