@@ -12,7 +12,7 @@ import sys
 
 
 
-def _get_serial_path():
+def _get_client_device_path():
 	if (not os.path.exists("/dev/serial/by-id")):
 		return None
 	for k in os.listdir("/dev/serial/by-id"):
@@ -48,7 +48,7 @@ if ("--client" in sys.argv):
 			error=True
 	if (error or subprocess.run(["avr-gcc","-Wall","-Werror","-mmcu=atmega328p","-flto","-fuse-linker-plugin","-Wl,--gc-sections","-O3","-g0","-o","build/client/client.elf"]+object_files).returncode or subprocess.run(["avr-objcopy","-O","ihex","-R",".eeprom","build/client/client.elf","build/client/client.hex"]).returncode):
 		sys.exit(1)
-	serial_path=_get_serial_path()
+	serial_path=_get_client_device_path()
 	if (serial_path is not None and subprocess.run(["avrdude","-C/etc/avrdude.conf","-V","-q","-q","-patmega328p","-carduino",f"-P{serial_path}","-b115200","-D","-Uflash:w:build/client/client.hex:i"])):
 		sys.exit(1)
 else:
