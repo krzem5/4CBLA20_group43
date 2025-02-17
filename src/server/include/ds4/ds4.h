@@ -43,7 +43,6 @@ typedef struct _DS4_DEVICE{
 	int8_t ry;
 	uint8_t l2;
 	uint8_t r2;
-	uint8_t battery;
 } ds4_device_t;
 
 

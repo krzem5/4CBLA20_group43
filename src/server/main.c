@@ -66,9 +66,6 @@ static void _process_controller_command(ds4_device_t* controller,packet_t* packe
 
 static void _update_ui(const ds4_device_t* controller,const packet_t* packet){
 	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y: \x1b[1;95m%3u\x1b[0m",packet->test_servo_angle,controller->r2*180/255);
-	if (controller->battery){
-		printf(", Battery: \x1b[92m%02u%%\x1b[0m",controller->battery*100/255);
-	}
 	fflush(stdout);
 }
 
