@@ -19,6 +19,7 @@
 #if (F_CPU/8000000)&(F_CPU/8000000-1)
 #error Timer ticks per us is not a power of 2
 #endif
+
 #define PWM_TIMER_TICKS_PER_US_SHIFT (__builtin_ffs(F_CPU/8000000)-1)
 
 #define PWM_MIN_PERIOD_US 20000
@@ -87,7 +88,7 @@ ISR(TIMER1_OVF_vect){
 			uint8_t k=ROM_LOAD_U8(sequencer_data.data+i);
 			if (current_invert_flag!=(k&PWM_SEQUENCER_PIN_FLAG_INVERTED)){
 				current_invert_flag=k&PWM_SEQUENCER_PIN_FLAG_INVERTED;
-				value=(((256+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT)-value;
+				value=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT)-value;
 			}
 			_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]=(_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|value;
 		}
