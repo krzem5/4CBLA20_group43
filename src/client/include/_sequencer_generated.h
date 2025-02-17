@@ -11,9 +11,6 @@
 #define __SEQUENCER_GENERATED_H_ 1
 #include <common/memory.h>
 #include <stdint.h>
-#if F_CPU!=16000000
-#error Unsupported CPU frequency
-#endif
 
 
 

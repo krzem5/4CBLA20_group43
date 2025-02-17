@@ -7,6 +7,7 @@
 
 
 
+import json
 import math
 
 
@@ -69,7 +70,7 @@ def _generate_sequencer_header(dst_file_path,data):
 				last_channel_repeat_byte_index[j]=len(sequencer_data)
 				sequencer_data.append(0)
 	with open(dst_file_path,"w") as wf:
-		wf.write(f"/*\n * Copyright (c) Krzesimir Hyżyk - All Rights Reserved\n * Unauthorized copying of this file, via any medium is strictly prohibited\n * Proprietary and confidential\n * Created on 17/02/2025 by Krzesimir Hyżyk\n */\n\n\n\n#ifndef __SEQUENCER_GENERATED_H_\n#define __SEQUENCER_GENERATED_H_ 1\n#include <common/memory.h>\n#include <stdint.h>\n#if F_CPU!={CPU_FREQ}\n#error Unsupported CPU frequency\n#endif\n\n\n\nstatic const ROM_DECL uint8_t sequencer_generated_data[{len(sequencer_data)}]={{")
+		wf.write(f"/*\n * Copyright (c) Krzesimir Hyżyk - All Rights Reserved\n * Unauthorized copying of this file, via any medium is strictly prohibited\n * Proprietary and confidential\n * Created on 17/02/2025 by Krzesimir Hyżyk\n */\n\n\n\n#ifndef __SEQUENCER_GENERATED_H_\n#define __SEQUENCER_GENERATED_H_ 1\n#include <common/memory.h>\n#include <stdint.h>\n\n\n\nstatic const ROM_DECL uint8_t sequencer_generated_data[{len(sequencer_data)}]={{")
 		for i in range(0,len(sequencer_data)):
 			if (not (i&15)):
 				wf.write("\n\t")
@@ -78,16 +79,5 @@ def _generate_sequencer_header(dst_file_path,data):
 
 
 
-_generate_sequencer_header("../src/client/include/_sequencer_generated.h",[
-	{
-		"pins": [~0],
-		"points": [
-			(0.0,0),
-			(1.0,0),
-			(2.0,180),
-			(3.0,180),
-			(3.5,90),
-			(4.5,90)
-		]
-	}
-])
+with open("../data/sequence.json","r") as rf:
+	_generate_sequencer_header("../src/client/include/_sequencer_generated.h",json.loads(rf.read()))
