@@ -34,7 +34,7 @@
 
 
 
-static volatile uint16_t __attribute__((section(".bss"))) _pwm_rr_scheduler_entries[PWM_MAX_ENTRY_COUNT+1];
+static uint16_t __attribute__((section(".bss"))) _pwm_rr_scheduler_entries[PWM_MAX_ENTRY_COUNT+1];
 static uint16_t _pwm_rr_scheduler_start_time=0;
 static pwm_t _pwm_rr_scheduler_entry_index=0;
 static uint8_t _pwm_sequencer_running=0;
@@ -82,28 +82,32 @@ ISR(TIMER1_OVF_vect){
 	_pwm_sequencer_virtual_divisor_counter=0;
 	uint8_t i=3;
 	for (uint8_t j=0;j<_pwm_sequencer_channel_count;j++){
-		uint8_t pin_end_offset=_pwm_sequencer_scratch_buffer[j<<1];
-		if (_pwm_sequencer_scratch_buffer[(j<<1)+1]){
-			_pwm_sequencer_scratch_buffer[(j<<1)+1]--;
-			i=pin_end_offset;
-			continue;
-		}
-		uint8_t token=ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index);
-		_pwm_sequencer_data_index++;
-		if (token<=PWM_SEQUENCER_PULSE_ENCODING_CUTOFF){
-			_pwm_sequencer_scratch_buffer[(j<<1)+1]=token;
-			i=pin_end_offset;
-			continue;
-		}
-		uint16_t value=(token*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT;
-		uint8_t current_invert_flag=0;
-		for (;i<pin_end_offset;i++){
-			uint8_t k=ROM_LOAD_U8(sequencer_generated_data+i);
-			if (current_invert_flag!=(k&PWM_SEQUENCER_PIN_FLAG_INVERTED)){
-				current_invert_flag=k&PWM_SEQUENCER_PIN_FLAG_INVERTED;
-				value=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT)-value;
+		if (_pwm_sequencer_scratch_buffer[(j<<2)+1]){
+			_pwm_sequencer_scratch_buffer[(j<<2)+1]--;
+			if (!_pwm_sequencer_scratch_buffer[(j<<2)+2]){
+				i=_pwm_sequencer_scratch_buffer[j<<2];
+				continue;
 			}
-			_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]=(_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|value;
+		}
+		else{
+			uint8_t token=ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index);
+			_pwm_sequencer_data_index++;
+			if (token&1){
+				_pwm_sequencer_scratch_buffer[(j<<2)+1]=token>>1;
+			}
+			else{
+				_pwm_sequencer_scratch_buffer[(j<<2)+2]=((int8_t)token)>>1;
+			}
+		}
+		uint8_t value=_pwm_sequencer_scratch_buffer[(j<<2)+3]+((int8_t)(_pwm_sequencer_scratch_buffer[(j<<2)+2]));
+		_pwm_sequencer_scratch_buffer[(j<<2)+3]=value;
+		uint16_t pulse=(value*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT;
+		for (;i<_pwm_sequencer_scratch_buffer[j<<2];i++){
+			uint8_t k=ROM_LOAD_U8(sequencer_generated_data+i);
+			if (k&PWM_SEQUENCER_PIN_FLAG_INVERTED){
+				pulse=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_ENTRY_PIN_BIT_COUNT)-pulse;
+			}
+			_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]=(_pwm_rr_scheduler_entries[k&PWM_SEQUENCER_PIN_MASK]&((1<<PWM_ENTRY_PIN_BIT_COUNT)-1))|pulse;
 		}
 	}
 	_pwm_sequencer_sample_index++;
@@ -162,8 +166,10 @@ void pwm_sequencer_start(void){
 	_pwm_sequencer_data_index=3;
 	for (uint8_t i=0;i<_pwm_sequencer_channel_count;i++){
 		for (_pwm_sequencer_data_index++;!(ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index-1)&PWM_SEQUENCER_PIN_FLAG_LAST);_pwm_sequencer_data_index++);
-		_pwm_sequencer_scratch_buffer[i<<1]=_pwm_sequencer_data_index;
-		_pwm_sequencer_scratch_buffer[(i<<1)+1]=0;
+		_pwm_sequencer_scratch_buffer[i<<2]=_pwm_sequencer_data_index;
+		_pwm_sequencer_scratch_buffer[(i<<2)+1]=0;
+		_pwm_sequencer_scratch_buffer[(i<<2)+2]=0;
+		_pwm_sequencer_scratch_buffer[(i<<2)+3]=0;
 	}
 	TIMSK1|=1<<TOIE1;
 }
