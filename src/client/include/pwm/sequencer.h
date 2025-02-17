@@ -23,15 +23,6 @@
 
 
 
-typedef struct _PWM_SEQUENCER_DATA{
-	uint8_t channel_count;
-	uint16_t sample_count;
-	const uint8_t* data;
-	uint8_t* scratch_data;
-} pwm_sequencer_data_t;
-
-
-
 void pwm_sequencer_start(void);
 
 

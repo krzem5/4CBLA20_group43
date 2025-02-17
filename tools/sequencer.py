@@ -30,7 +30,7 @@ if (ANGLE_TO_ENCODED_PULSE(0)!=PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1):
 
 def _generate_sequencer_header(dst_file_path,data):
 	channel_count=len(data)
-	sequencer_data=[]
+	sequencer_data=[channel_count,0,0]
 	last_time=0
 	for channel in data:
 		for i,k in enumerate(channel["pins"]):
@@ -39,6 +39,8 @@ def _generate_sequencer_header(dst_file_path,data):
 			last_time=max(last_time,k[0])
 	sample_delta=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
 	sample_count=math.ceil(last_time/sample_delta)+1
+	sequencer_data[1]=sample_count&0xff
+	sequencer_data[2]=sample_count>>8
 	last_channel_values=[-1 for _ in range(0,channel_count)]
 	last_channel_offsets=[0 for _ in range(0,channel_count)]
 	last_channel_repeat_byte_index=[0 for _ in range(0,channel_count)]
@@ -65,12 +67,12 @@ def _generate_sequencer_header(dst_file_path,data):
 				last_channel_repeat_byte_index[j]=len(sequencer_data)
 				sequencer_data.append(0)
 	with open(dst_file_path,"w") as wf:
-		wf.write(f"/*\n * Copyright (c) Krzesimir Hyżyk - All Rights Reserved\n * Unauthorized copying of this file, via any medium is strictly prohibited\n * Proprietary and confidential\n * Created on 17/02/2025 by Krzesimir Hyżyk\n */\n\n\n\n#ifndef __SEQUENCER_GENERATED_H_\n#define __SEQUENCER_GENERATED_H_ 1\n#include <common/memory.h>\n#include <pwm/sequencer.h>\n#include <stdint.h>\n#if F_CPU!={CPU_FREQ}\n#error Unsupported CPU frequency\n#endif\n\n\n\nstatic const ROM_DECL uint8_t _sequencer_data[{len(sequencer_data)}]={{")
+		wf.write(f"/*\n * Copyright (c) Krzesimir Hyżyk - All Rights Reserved\n * Unauthorized copying of this file, via any medium is strictly prohibited\n * Proprietary and confidential\n * Created on 17/02/2025 by Krzesimir Hyżyk\n */\n\n\n\n#ifndef __SEQUENCER_GENERATED_H_\n#define __SEQUENCER_GENERATED_H_ 1\n#include <common/memory.h>\n#include <stdint.h>\n#if F_CPU!={CPU_FREQ}\n#error Unsupported CPU frequency\n#endif\n\n\n\nstatic const ROM_DECL uint8_t sequencer_generated_data[{len(sequencer_data)}]={{")
 		for i in range(0,len(sequencer_data)):
 			if (not (i&15)):
 				wf.write("\n\t")
 			wf.write(f"0x{sequencer_data[i]:02x},")
-		wf.write(f"\n}};\n\n\n\nstatic uint8_t _sequencer_scratch_data[{channel_count*2}];\n\n\n\nstatic const pwm_sequencer_data_t sequencer_data={{\n\t{channel_count},\n\t{sample_count},\n\t_sequencer_data,\n\t_sequencer_scratch_data\n}};\n\n\n\n#endif\n")
+		wf.write(f"\n}};\n\n\n\n#endif\n")
 
 
 

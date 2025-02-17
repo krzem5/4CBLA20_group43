@@ -57,12 +57,15 @@ static void _process_controller_command(ds4_device_t* controller,packet_t* packe
 		return;
 	}
 	packet->test_servo_angle=controller->l2*180/255;
+	if (controller->buttons&DS4_BUTTON_CROSS){
+		packet->start_sequence_token=PACKET_START_SEQUENCE_TOKEN;
+	}
 }
 
 
 
 static void _update_ui(const ds4_device_t* controller,const packet_t* packet){
-	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y:   \x1b[1;95m0\x1b[0m",packet->test_servo_angle);
+	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y: \x1b[1;95m%3u\x1b[0m",packet->test_servo_angle,controller->r2*180/255);
 	if (controller->battery){
 		printf(", Battery: \x1b[92m%02u%%\x1b[0m",controller->battery*100/255);
 	}
@@ -107,6 +110,7 @@ int main(void){
 	}
 	printf("\x1b[?25h\r\n");
 	packet.test_servo_angle=90;
+	packet.start_sequence_token=0;
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
 	ds4_deinit(&controller);

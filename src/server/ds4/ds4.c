@@ -14,6 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <util/util.h>
+#include <stdio.h>
 
 
 
@@ -38,7 +39,7 @@ void ds4_init(ds4_device_t* out){
 			goto _cleanup_entry;
 		}
 		const char* name=udev_device_get_property_value(parent,"HID_NAME");
-		if (!name||(strcmp(name,"Sony Interactive Entertainment Wireless Controller")&&strcmp(name,"Sony Computer Entertainment Wireless Controller"))){
+		if (!name||(strcmp(name,"Wireless Controller")&&strcmp(name,"Sony Interactive Entertainment Wireless Controller")&&strcmp(name,"Sony Computer Entertainment Wireless Controller"))){
 			goto _cleanup_entry;
 		}
 		const char* path=udev_device_get_devnode(dev);
@@ -66,8 +67,9 @@ void ds4_deinit(ds4_device_t* device){
 void ds4_recv(ds4_device_t* device){
 	uint8_t buffer[64];
 	ASSERT(read(device->fd,buffer,sizeof(buffer))==sizeof(buffer));
+	const uint8_t* ptr=buffer+(buffer[0]==0x11?2:0);
 	device->buttons=0;
-	uint8_t dp=buffer[5]&0x0f;
+	uint8_t dp=ptr[5]&0x0f;
 	if (dp==0||dp==1||dp==7){
 		device->buttons|=DS4_BUTTON_UP;
 	}
@@ -80,53 +82,53 @@ void ds4_recv(ds4_device_t* device){
 	if (dp>=1&&dp<=3){
 		device->buttons|=DS4_BUTTON_RIGHT;
 	}
-	if (buffer[5]&32){
+	if (ptr[5]&32){
 		device->buttons|=DS4_BUTTON_CROSS;
 	}
-	if (buffer[5]&64){
+	if (ptr[5]&64){
 		device->buttons|=DS4_BUTTON_CIRCLE;
 	}
-	if (buffer[5]&16){
+	if (ptr[5]&16){
 		device->buttons|=DS4_BUTTON_SQURARE;
 	}
-	if (buffer[5]&128){
+	if (ptr[5]&128){
 		device->buttons|=DS4_BUTTON_TRIANGLE;
 	}
-	if (buffer[6]&1){
+	if (ptr[6]&1){
 		device->buttons|=DS4_BUTTON_L1;
 	}
-	if (buffer[6]&2){
+	if (ptr[6]&2){
 		device->buttons|=DS4_BUTTON_R1;
 	}
-	if (buffer[6]&4){
+	if (ptr[6]&4){
 		device->buttons|=DS4_BUTTON_L2;
 	}
-	if (buffer[6]&8){
+	if (ptr[6]&8){
 		device->buttons|=DS4_BUTTON_R2;
 	}
-	if (buffer[6]&16){
+	if (ptr[6]&16){
 		device->buttons|=DS4_BUTTON_SHARE;
 	}
-	if (buffer[6]&32){
+	if (ptr[6]&32){
 		device->buttons|=DS4_BUTTON_OPTIONS;
 	}
-	if (buffer[6]&64){
+	if (ptr[6]&64){
 		device->buttons|=DS4_BUTTON_L3;
 	}
-	if (buffer[6]&128){
+	if (ptr[6]&128){
 		device->buttons|=DS4_BUTTON_R3;
 	}
-	if (buffer[7]&1){
+	if (ptr[7]&1){
 		device->buttons|=DS4_BUTTON_LOGO;
 	}
-	if (buffer[7]&2){
+	if (ptr[7]&2){
 		device->buttons|=DS4_BUTTON_TOUCHPAD;
 	}
-	device->lx=-128+buffer[1];
-	device->ly=127-buffer[2];
-	device->rx=-128+buffer[3];
-	device->ry=127-buffer[4];
-	device->l2=buffer[8];
-	device->r2=buffer[9];
-	device->battery=buffer[12];
+	device->lx=-128+ptr[1];
+	device->ly=127-ptr[2];
+	device->rx=-128+ptr[3];
+	device->ry=127-ptr[4];
+	device->l2=ptr[8];
+	device->r2=ptr[9];
+	device->battery=(buffer[0]!=0x11?0xff:((ptr[30]&0xf)==11?0:ptr[30]<<5));
 }
