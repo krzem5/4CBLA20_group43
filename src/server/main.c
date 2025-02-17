@@ -52,6 +52,7 @@ static void _process_terminal_command(packet_t* packet){
 
 static void _process_controller_command(ds4_device_t* controller,packet_t* packet){
 	ds4_recv(controller);
+	controller->led_green=0xff;
 	ds4_send(controller);
 	if (controller->buttons&DS4_BUTTON_LOGO){
 		_exit_program=1;

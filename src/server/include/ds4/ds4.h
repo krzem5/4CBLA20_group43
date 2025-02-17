@@ -36,6 +36,7 @@
 
 typedef struct _DS4_DEVICE{
 	int fd;
+	uint8_t has_wired_connection;
 	uint32_t buttons;
 	int8_t lx;
 	int8_t ly;
