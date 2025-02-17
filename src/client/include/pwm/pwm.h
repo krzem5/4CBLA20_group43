@@ -17,10 +17,6 @@ void pwm_init(void);
 
 
 
-void pwm_init_pin(uint8_t pin);
-
-
-
 void pwm_set_pulse_width_us(uint8_t pin,uint16_t us);
 
 

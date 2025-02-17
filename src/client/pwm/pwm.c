@@ -10,7 +10,6 @@
 #include <_sequencer_generated.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#include <gpio/gpio.h>
 #include <pwm/pwm.h>
 #include <pwm/sequencer.h>
 #include <stdint.h>
@@ -27,15 +26,15 @@
 #define PWM_MIN_PULSE_US 2
 #define PWM_MAX_PULSE_US (0xffff>>PWM_TIMER_TICKS_PER_US_SHIFT)
 
-#define PWM_MAX_PIN_INDEX 13
-
 #define PWM_SEQUENCER_SCRTACH_BUFFER_SIZE 8
 
 
 
-static uint16_t _pwm_rr_scheduler_entries[PWM_MAX_PIN_INDEX+1];
-static uint16_t _pwm_rr_scheduler_start_time=0;
-static uint8_t _pwm_rr_scheduler_entry_index=0;
+static uint16_t _pwm_rr_scheduler_entries[12];
+static uint16_t _pwm_rr_scheduler_portb_start_time=0;
+static uint16_t _pwm_rr_scheduler_portc_start_time=0;
+static uint8_t _pwm_rr_scheduler_portb_entry_index=0;
+static uint8_t _pwm_rr_scheduler_portc_entry_index=0;
 static uint8_t _pwm_sequencer_running=0;
 static uint8_t _pwm_sequencer_channel_count;
 static uint16_t _pwm_sequencer_sample_count;
@@ -46,21 +45,45 @@ static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_SCRTACH_BUFFER_SIZE];
 
 
 ISR(TIMER1_COMPA_vect){
-	if (_pwm_rr_scheduler_entry_index<=PWM_MAX_PIN_INDEX){
-		gpio_write(_pwm_rr_scheduler_entry_index,0);
-		_pwm_rr_scheduler_entry_index++;
+	if (_pwm_rr_scheduler_portb_entry_index<6){
+		PORTB=0;
+		_pwm_rr_scheduler_portb_entry_index++;
 	}
 	else{
 _reset_rr_scheduler:
-		_pwm_rr_scheduler_start_time=TCNT1;
-		_pwm_rr_scheduler_entry_index=0;
+		_pwm_rr_scheduler_portb_start_time=TCNT1;
+		_pwm_rr_scheduler_portb_entry_index=0;
 	}
-	if (_pwm_rr_scheduler_entry_index<=PWM_MAX_PIN_INDEX){
-		gpio_write(_pwm_rr_scheduler_entry_index,1);
-		OCR1A=TCNT1+_pwm_rr_scheduler_entries[_pwm_rr_scheduler_entry_index];
+	if (_pwm_rr_scheduler_portb_entry_index<6){
+		PORTB=1<<_pwm_rr_scheduler_portb_entry_index;
+		OCR1A=TCNT1+_pwm_rr_scheduler_entries[_pwm_rr_scheduler_portb_entry_index];
 	}
-	else if (TCNT1-_pwm_rr_scheduler_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
-		OCR1A=_pwm_rr_scheduler_start_time+((PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT);
+	else if (TCNT1-_pwm_rr_scheduler_portb_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
+		OCR1A=_pwm_rr_scheduler_portb_start_time+((PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT);
+	}
+	else{
+		goto _reset_rr_scheduler;
+	}
+}
+
+
+
+ISR(TIMER1_COMPB_vect){
+	if (_pwm_rr_scheduler_portc_entry_index<6){
+		PORTC=0;
+		_pwm_rr_scheduler_portc_entry_index++;
+	}
+	else{
+_reset_rr_scheduler:
+		_pwm_rr_scheduler_portc_start_time=TCNT1;
+		_pwm_rr_scheduler_portc_entry_index=0;
+	}
+	if (_pwm_rr_scheduler_portc_entry_index<6){
+		PORTC=1<<_pwm_rr_scheduler_portc_entry_index;
+		OCR1B=TCNT1+_pwm_rr_scheduler_entries[_pwm_rr_scheduler_portc_entry_index+6];
+	}
+	else if (TCNT1-_pwm_rr_scheduler_portc_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
+		OCR1B=_pwm_rr_scheduler_portc_start_time+((PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT);
 	}
 	else{
 		goto _reset_rr_scheduler;
@@ -114,23 +137,23 @@ ISR(TIMER1_OVF_vect){
 
 
 void pwm_init(void){
-	for (uint8_t i=0;i<=PWM_MAX_PIN_INDEX;i++){
+	for (uint8_t i=0;i<12;i++){
 		_pwm_rr_scheduler_entries[i]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
 	}
+	ADMUX=0;
+	ADCSRA=0;
+	DIDR0=0;
+	DDRB=0x3f;
+	DDRC=0x3f;
+	PORTB=0;
+	PORTC=0;
 	TCCR1A=0;
 	TCCR1B=1<<CS11; // divide by 8
 	TCNT1=0;
 	TIFR1=(1<<TOV1)|(1<<OCF1A)|(1<<OCF1B)|(1<<ICF1);
-	OCR1A=PWM_MIN_PERIOD_US;
-	TIMSK1=1<<OCIE1A;
-}
-
-
-
-void pwm_init_pin(uint8_t pin){
-	gpio_init(pin,1);
-	gpio_write(pin,0);
-	_pwm_rr_scheduler_entries[pin]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	OCR1A=PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	OCR1B=PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	TIMSK1=(1<<OCIE1A)|(1<<OCIE1B);
 }
 
 

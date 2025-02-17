@@ -14,11 +14,14 @@
 
 
 
-void servo_init_pin(uint8_t pin);
+#define SERVO_MIN_PULSE_US 600
+#define SERVO_US_PER_DEGREE 10
 
 
 
-void servo_set_angle(uint8_t pin,uint8_t angle);
+static inline void servo_set_angle(uint8_t pin,uint8_t angle){
+	pwm_set_pulse_width_us(pin,SERVO_MIN_PULSE_US+SERVO_US_PER_DEGREE*((uint16_t)(angle>180?180:angle)));
+}
 
 
 
