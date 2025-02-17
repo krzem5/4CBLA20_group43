@@ -26,18 +26,20 @@ ANGLE_TO_ENCODED_PULSE=lambda x:round((600+10*max(min(x,180),0))/PWM_SEQUENCER_P
 if (ANGLE_TO_ENCODED_PULSE(0)!=PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1):
 	raise RuntimeError("Incorrect cutoff")
 
+TIMER_VIRTUAL_DIVISOR=2
+
 
 
 def _generate_sequencer_header(dst_file_path,data):
 	channel_count=len(data)
-	sequencer_data=[channel_count,0,0]
+	sequencer_data=[channel_count|(TIMER_VIRTUAL_DIVISOR<<4),0,0]
 	last_time=0
 	for channel in data:
 		for i,k in enumerate(channel["pins"]):
 			sequencer_data.append(abs(k)+(PWM_SEQUENCER_PIN_FLAG_INVERTED if k<0 else 0)+(PWM_SEQUENCER_PIN_FLAG_LAST if i==len(channel["pins"])-1 else 0))
 		for k in channel["points"]:
 			last_time=max(last_time,k[0])
-	sample_delta=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
+	sample_delta=TIMER_TICKS*TIMER_DIVISOR*TIMER_VIRTUAL_DIVISOR/CPU_FREQ
 	sample_count=math.ceil(last_time/sample_delta)+1
 	sequencer_data[1]=sample_count&0xff
 	sequencer_data[2]=sample_count>>8
@@ -84,7 +86,8 @@ _generate_sequencer_header("../src/client/include/_sequencer_generated.h",[
 			(1.0,0),
 			(2.0,180),
 			(3.0,180),
-			(3.5,90)
+			(3.5,90),
+			(4.5,90)
 		]
 	}
 ])

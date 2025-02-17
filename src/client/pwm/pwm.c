@@ -37,6 +37,8 @@ static volatile uint16_t __attribute__((section(".bss"))) _pwm_rr_scheduler_entr
 static uint16_t _pwm_rr_scheduler_start_time=0;
 static pwm_t _pwm_rr_scheduler_entry_index=0;
 static uint8_t _pwm_sequencer_running=0;
+static uint8_t _pwm_sequencer_virtual_divisor_counter;
+static uint8_t _pwm_sequencer_virtual_divisor;
 static uint8_t _pwm_sequencer_channel_count;
 static uint16_t _pwm_sequencer_sample_count;
 static uint16_t _pwm_sequencer_sample_index;
@@ -72,6 +74,11 @@ _reset_rr_scheduler:
 
 
 ISR(TIMER1_OVF_vect){
+	_pwm_sequencer_virtual_divisor_counter++;
+	if (_pwm_sequencer_virtual_divisor_counter<_pwm_sequencer_virtual_divisor){
+		return;
+	}
+	_pwm_sequencer_virtual_divisor_counter=0;
 	uint8_t i=3;
 	for (uint8_t j=0;j<_pwm_sequencer_channel_count;j++){
 		uint8_t pin_end_offset=_pwm_sequencer_scratch_buffer[j<<1];
@@ -145,7 +152,10 @@ void pwm_set_pulse_width_us(pwm_t index,uint16_t us){
 void pwm_sequencer_start(void){
 	TIMSK1&=~(1<<TOIE1);
 	_pwm_sequencer_running=1;
+	_pwm_sequencer_virtual_divisor_counter=0;
 	_pwm_sequencer_channel_count=ROM_LOAD_U8(sequencer_generated_data);
+	_pwm_sequencer_virtual_divisor=_pwm_sequencer_channel_count>>4;
+	_pwm_sequencer_channel_count&=15;
 	_pwm_sequencer_sample_count=ROM_LOAD_U8(sequencer_generated_data+1)|(ROM_LOAD_U8(sequencer_generated_data+2)<<8);
 	_pwm_sequencer_sample_index=0;
 	_pwm_sequencer_data_index=3;
