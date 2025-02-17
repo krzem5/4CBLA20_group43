@@ -42,6 +42,9 @@ static void _process_terminal_command(packet_t* packet){
 		case '5':
 			packet->test_servo_angle=180;
 			return;
+		case 's':
+			packet->start_sequence_token=PACKET_START_SEQUENCE_TOKEN;
+			return;
 	}
 }
 
@@ -86,10 +89,12 @@ int main(void){
 		}
 	};
 	packet_t packet={
-		.test_servo_angle=90
+		.test_servo_angle=90,
+		.start_sequence_token=0
 	};
 	printf("\x1b[?25l");
 	while (!_exit_program&&poll(fds,1+(controller.fd>=0),20)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
+		packet.start_sequence_token=0;
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command(&packet);
 		}

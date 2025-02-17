@@ -16,6 +16,8 @@
 
 #define PACKET_CHECKSUM_START_VALUE 0x55
 
+#define PACKET_START_SEQUENCE_TOKEN 0xca
+
 
 
 typedef union __attribute__((packed)) _PACKET{
@@ -23,6 +25,7 @@ typedef union __attribute__((packed)) _PACKET{
 	struct __attribute__((packed)){
 		uint8_t checksum;
 		uint8_t test_servo_angle;
+		uint8_t start_sequence_token;
 	};
 } packet_t;
 

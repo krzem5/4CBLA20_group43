@@ -38,7 +38,7 @@ def _generate_client_sketch(dst_file_path,*directories):
 	open(os.path.join(dst_file_path,f"{dst_file_path.rstrip('/').split('/')[-1]}.ino"),"w").close()
 	with open(os.path.join(dst_file_path,"weak_main_patch.h"),"w") as wf:
 		wf.write("#ifndef __ASSEMBLER__\nint __attribute__((weak)) main(void);\n#endif\n")
-	with open(os.path.join(dst_file_path,"generated.c"),"w") as wf:
+	with open(os.path.join(dst_file_path,"all.c"),"w") as wf:
 		for file in _get_source_files(*directories):
 			wf.write(f"#include <{os.path.abspath(file)}>\n")
 
