@@ -22,9 +22,9 @@
 
 #define PWM_TIMER_TICKS_PER_US_SHIFT (__builtin_ffs(F_CPU/8000000)-1)
 
-#define PWM_MIN_PERIOD_US 20000
+#define PWM_WINDOW_US 20000
 #define PWM_MIN_PULSE_US 4
-#define PWM_MAX_PULSE_US (0xffff>>PWM_TIMER_TICKS_PER_US_SHIFT)
+#define PWM_MAX_PULSE_US PWM_WINDOW_US
 
 #define PWM_SEQUENCER_SCRTACH_BUFFER_SIZE 8
 
@@ -56,7 +56,7 @@ static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_SCRTACH_BUFFER_SIZE];
 
 
 
-static inline void _update_pin_pulse(uint8_t pin,uint16_t pulse){
+static void _update_pin_pulse(uint8_t pin,uint16_t pulse){
 	if (_pwm_pin_entries[pin]==pulse){
 		return;
 	}
