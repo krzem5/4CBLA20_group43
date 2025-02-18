@@ -156,11 +156,11 @@ void pwm_init(void){
 
 
 
-void pwm_set_pulse_width_us(uint8_t pin,uint16_t us){
+void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
 	if (_pwm_sequencer_running){
 		return;
 	}
-	_pwm_rr_scheduler_entries[pin]=(us<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(us>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:us))<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	_pwm_rr_scheduler_entries[pin]=(pulse<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(pulse>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:pulse))<<PWM_TIMER_TICKS_PER_US_SHIFT;
 }
 
 
