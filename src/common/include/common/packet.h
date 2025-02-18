@@ -16,7 +16,10 @@
 
 #define PACKET_CHECKSUM_START_VALUE 0x55
 
-#define PACKET_START_SEQUENCE_TOKEN 0xca
+#define PACKET_TYPE_NONE 0x00
+#define PACKET_TYPE_ESTOP 0x01
+#define PACKET_TYPE_MANUAL_INPUT 0x02
+#define PACKET_TYPE_SEQUENCE_START 0x03
 
 
 
@@ -24,8 +27,13 @@ typedef union __attribute__((packed)) _PACKET{
 	uint8_t _raw_data[0];
 	struct __attribute__((packed)){
 		uint8_t checksum;
-		uint8_t test_servo_angle;
-		uint8_t start_sequence_token;
+		uint8_t type;
+		union __attribute__((packed)){
+			struct __attribute__((packed)){
+				uint8_t test_servo_angle;
+				uint8_t test_led_brightness;
+			} manual_input;
+		};
 	};
 } packet_t;
 

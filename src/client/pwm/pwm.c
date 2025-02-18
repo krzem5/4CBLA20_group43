@@ -237,3 +237,11 @@ void pwm_sequencer_start(void){
 	}
 	TIMSK1|=1<<TOIE1;
 }
+
+
+
+void pwm_sequencer_stop(void){
+	_pwm_sequencer_running=0;
+	TIMSK1&=~(1<<TOIE1);
+}
+

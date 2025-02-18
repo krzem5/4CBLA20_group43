@@ -27,4 +27,8 @@ void pwm_sequencer_start(void);
 
 
 
+void pwm_sequencer_stop(void);
+
+
+
 #endif
