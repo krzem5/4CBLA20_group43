@@ -16,9 +16,6 @@ CPU_FREQ=16000000
 TIMER_DIVISOR=8
 TIMER_TICKS=65536
 
-PWM_SEQUENCER_PIN_FLAG_INVERTED=0x40
-PWM_SEQUENCER_PIN_FLAG_LAST=0x80
-
 PWM_SEQUENCER_PULSE_ENCODING_FACTOR=10
 
 ANGLE_TO_ENCODED_PULSE=lambda x:round((600+10*max(min(x,180),0))/PWM_SEQUENCER_PULSE_ENCODING_FACTOR)
@@ -30,13 +27,7 @@ def compile_sequence(dst_file_path,data):
 	sequencer_data=[0,0]
 	last_time=0
 	for i in range(0,channel_count):
-		pins=sorted(data[i]["pins"],reverse=True)
-		is_inverted=False
-		for j in range(0,len(pins)):
-			sequencer_data.append((pins[j]^(pins[j]>>7))|(PWM_SEQUENCER_PIN_FLAG_LAST if j==len(pins)-1 else 0))
-			if (pins[j]<0 and not is_inverted):
-				is_inverted=True
-				sequencer_data[-1]|=PWM_SEQUENCER_PIN_FLAG_INVERTED
+		sequencer_data.append(data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else 15)<<4))
 		points=data[i]["points"]
 		for j in range(0,len(points)):
 			last_time=max(last_time,points[j][0])
