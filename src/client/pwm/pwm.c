@@ -91,7 +91,7 @@ static uint8_t _recompute_scheduler(const uint16_t* entries,uint8_t* values,uint
 		i++;
 		values[i]=mask;
 	} while (mask);
-	deltas[i]=(pulse<((PWM_MIN_PERIOD_US-PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT)?(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse:PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT);
+	deltas[i]=(pulse<((PWM_WINDOW_US-PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT)?(PWM_WINDOW_US<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse:PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT);
 	return i+1;
 }
 
@@ -182,13 +182,13 @@ void pwm_init(void){
 	_pwm_parallel_scheduler_portb_value_entries[0]=0x3f;
 	_pwm_parallel_scheduler_portb_delta_entries[0]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
 	_pwm_parallel_scheduler_portb_value_entries[1]=0x00;
-	_pwm_parallel_scheduler_portb_delta_entries[1]=(PWM_MIN_PERIOD_US-PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	_pwm_parallel_scheduler_portb_delta_entries[1]=(PWM_WINDOW_US-PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
 	_pwm_parallel_scheduler_portb_entry_index=1;
 	_pwm_parallel_scheduler_portb_entry_count=2;
 	_pwm_parallel_scheduler_portc_value_entries[0]=0x3f;
 	_pwm_parallel_scheduler_portc_delta_entries[0]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
 	_pwm_parallel_scheduler_portc_value_entries[1]=0x00;
-	_pwm_parallel_scheduler_portc_delta_entries[1]=(PWM_MIN_PERIOD_US-PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	_pwm_parallel_scheduler_portc_delta_entries[1]=(PWM_WINDOW_US-PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
 	_pwm_parallel_scheduler_portb_entry_index=1;
 	_pwm_parallel_scheduler_portc_entry_count=2;
 	ADMUX=0;
