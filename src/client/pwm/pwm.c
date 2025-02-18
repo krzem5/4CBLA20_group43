@@ -152,8 +152,9 @@ ISR(TIMER1_OVF_vect){
 		uint16_t pulse=(ptr[2]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT;
 		uint8_t pins=ROM_LOAD_U8(sequencer_generated_data+i+2);
 		_pwm_pin_entries[pins&15]=pulse;
-		if (pins>15){
-			_pwm_pin_entries[pins>>4]=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse;
+		pins>>=4;
+		if (pins!=15){
+			_pwm_pin_entries[pins]=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse;
 		}
 _next_channel:
 		ptr+=3;
