@@ -33,9 +33,20 @@
 
 
 
-static uint16_t _pwm_rr_scheduler_entries[12];
-static uint16_t _pwm_rr_scheduler_portc_start_time=0;
-static uint8_t _pwm_rr_scheduler_portc_entry_index=0;
+static uint16_t _pwm_pin_entries[12];
+
+static uint8_t _pwm_parallel_scheduler_update_flags=0;
+
+static uint8_t _pwm_parallel_scheduler_portb_value_entries[7];
+static uint16_t _pwm_parallel_scheduler_portb_delta_entries[7];
+static uint8_t _pwm_parallel_scheduler_portb_entry_index=0;
+static uint8_t _pwm_parallel_scheduler_portb_entry_count;
+
+static uint8_t _pwm_parallel_scheduler_portc_value_entries[7];
+static uint16_t _pwm_parallel_scheduler_portc_delta_entries[7];
+static uint8_t _pwm_parallel_scheduler_portc_entry_index=0;
+static uint8_t _pwm_parallel_scheduler_portc_entry_count;
+
 static uint8_t _pwm_sequencer_running=0;
 static uint8_t _pwm_sequencer_channel_count;
 static uint16_t _pwm_sequencer_sample_count;
@@ -43,25 +54,19 @@ static uint16_t _pwm_sequencer_sample_index;
 static uint16_t _pwm_sequencer_data_index;
 static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_SCRTACH_BUFFER_SIZE];
 
-static uint8_t _pwm_parallel_scheduler_update_flags=0;
-static uint8_t _pwm_parallel_scheduler_portb_value_entries[7]={0};
-static uint16_t _pwm_parallel_scheduler_portb_delta_entries[7]={PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT};
-static uint8_t _pwm_parallel_scheduler_portb_entry_index=0;
-static uint8_t _pwm_parallel_scheduler_portb_entry_count=1;
 
 
-
-static inline void _update_scheduler_pulse(uint8_t pin,uint16_t pulse){
-	if (_pwm_rr_scheduler_entries[pin]==pulse){
+static inline void _update_pin_pulse(uint8_t pin,uint16_t pulse){
+	if (_pwm_pin_entries[pin]==pulse){
 		return;
 	}
-	_pwm_rr_scheduler_entries[pin]=pulse;
+	_pwm_pin_entries[pin]=pulse;
 	_pwm_parallel_scheduler_update_flags|=(pin>5?PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC:PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTB);
 }
 
 
 
-static inline uint8_t _recompute_scheduler(const uint16_t* entries,uint8_t* values,uint16_t* deltas){
+static uint8_t _recompute_scheduler(const uint16_t* entries,uint8_t* values,uint16_t* deltas){
 	values[0]=0;
 	for (uint8_t i=0;i<6;i++){
 		if (entries[i]){
@@ -100,7 +105,7 @@ ISR(TIMER1_COMPA_vect){
 		_pwm_parallel_scheduler_portb_entry_index=0;
 		if (__builtin_expect(_pwm_parallel_scheduler_update_flags&PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTB,0)){
 			_pwm_parallel_scheduler_update_flags&=~PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTB;
-			_pwm_parallel_scheduler_portb_entry_count=_recompute_scheduler(_pwm_rr_scheduler_entries,_pwm_parallel_scheduler_portb_value_entries,_pwm_parallel_scheduler_portb_delta_entries);
+			_pwm_parallel_scheduler_portb_entry_count=_recompute_scheduler(_pwm_pin_entries,_pwm_parallel_scheduler_portb_value_entries,_pwm_parallel_scheduler_portb_delta_entries);
 		}
 	}
 	uint8_t value=_pwm_parallel_scheduler_portb_value_entries[_pwm_parallel_scheduler_portb_entry_index];
@@ -113,24 +118,18 @@ ISR(TIMER1_COMPA_vect){
 
 
 ISR(TIMER1_COMPB_vect){
-	PORTC=0;
-	if (_pwm_rr_scheduler_portc_entry_index<6){
-		uint8_t index=_pwm_rr_scheduler_portc_entry_index;
-		_pwm_rr_scheduler_portc_entry_index++;
-		OCR1B=TCNT1+_pwm_rr_scheduler_entries[index+6];
-		PORTC=1<<index;
+	if (_pwm_parallel_scheduler_portc_entry_index==_pwm_parallel_scheduler_portc_entry_count){
+		_pwm_parallel_scheduler_portc_entry_index=0;
+		if (__builtin_expect(_pwm_parallel_scheduler_update_flags&PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC,0)){
+			_pwm_parallel_scheduler_update_flags&=~PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC;
+			_pwm_parallel_scheduler_portc_entry_count=_recompute_scheduler(_pwm_pin_entries+6,_pwm_parallel_scheduler_portc_value_entries,_pwm_parallel_scheduler_portc_delta_entries);
+		}
 	}
-	else if (TCNT1-_pwm_rr_scheduler_portc_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
-		_pwm_rr_scheduler_portc_start_time+=(PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
-		_pwm_rr_scheduler_portc_entry_index=0;
-		OCR1B=_pwm_rr_scheduler_portc_start_time;
-	}
-	else{
-		_pwm_rr_scheduler_portc_start_time=TCNT1;
-		_pwm_rr_scheduler_portc_entry_index=1;
-		OCR1B=TCNT1+_pwm_rr_scheduler_entries[6];
-		PORTC=1;
-	}
+	uint8_t value=_pwm_parallel_scheduler_portc_value_entries[_pwm_parallel_scheduler_portc_entry_index];
+	uint16_t delta=_pwm_parallel_scheduler_portc_delta_entries[_pwm_parallel_scheduler_portc_entry_index];
+	_pwm_parallel_scheduler_portc_entry_index++;
+	PORTC=value;
+	OCR1B=TCNT1+delta;
 }
 
 
@@ -167,7 +166,7 @@ ISR(TIMER1_OVF_vect){
 			if (k&PWM_SEQUENCER_PIN_FLAG_INVERTED){
 				pulse=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse;
 			}
-			_update_scheduler_pulse(k&PWM_SEQUENCER_PIN_MASK,pulse);
+			_update_pin_pulse(k&PWM_SEQUENCER_PIN_MASK,pulse);
 		}
 	}
 	_pwm_sequencer_sample_index++;
@@ -181,8 +180,14 @@ ISR(TIMER1_OVF_vect){
 
 void pwm_init(void){
 	for (uint8_t i=0;i<12;i++){
-		_pwm_rr_scheduler_entries[i]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+		_pwm_pin_entries[i]=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
 	}
+	_pwm_parallel_scheduler_portb_value_entries[0]=0;
+	_pwm_parallel_scheduler_portb_delta_entries[0]=PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	_pwm_parallel_scheduler_portb_entry_count=1;
+	_pwm_parallel_scheduler_portc_value_entries[0]=0;
+	_pwm_parallel_scheduler_portc_delta_entries[0]=PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	_pwm_parallel_scheduler_portc_entry_count=1;
 	ADMUX=0;
 	ADCSRA=0;
 	DIDR0=0;
@@ -205,7 +210,7 @@ void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
 	if (_pwm_sequencer_running){
 		return;
 	}
-	_update_scheduler_pulse(pin,(pulse<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(pulse>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:pulse))<<PWM_TIMER_TICKS_PER_US_SHIFT);
+	_update_pin_pulse(pin,(pulse<PWM_MIN_PULSE_US?PWM_MIN_PULSE_US:(pulse>PWM_MAX_PULSE_US?PWM_MAX_PULSE_US:pulse))<<PWM_TIMER_TICKS_PER_US_SHIFT);
 }
 
 
