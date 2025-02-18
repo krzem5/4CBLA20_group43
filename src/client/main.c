@@ -9,6 +9,7 @@
 
 #include <avr/interrupt.h>
 #include <common/packet.h>
+#include <pwm/pwm.h>
 #include <pwm/sequencer.h>
 #include <serial/serial.h>
 #include <servo/servo.h>
@@ -35,14 +36,14 @@ int main(void){
 	sei();
 	serial_init();
 	pwm_init();
-	servo_set_angle(5,90);
+	pwm_set_pulse_width_us(5,10000);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)){
 			continue;
 		}
 		cli();
-		servo_set_angle(5,packet.test_servo_angle);
+		pwm_set_pulse_width_us(5,((uint32_t)packet.test_servo_angle)*1000/9);
 		if (packet.start_sequence_token==PACKET_START_SEQUENCE_TOKEN){
 			pwm_sequencer_start();
 		}
