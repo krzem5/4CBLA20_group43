@@ -16,14 +16,10 @@
 
 
 
-#if (F_CPU/8000000)&(F_CPU/8000000-1)
-#error Timer ticks per us is not a power of 2
-#endif
+#define PWM_TIMER_TICKS_PER_US (F_CPU/8000000)
 
-#define PWM_TIMER_TICKS_PER_US_SHIFT (__builtin_ffs(F_CPU/8000000)-1)
-
-#define PWM_WINDOW_US 20000
 #define PWM_MIN_PULSE_US 4
+#define PWM_WINDOW_US 20000
 
 #define PWM_SEQUENCER_SCRTACH_BUFFER_SIZE 12
 
@@ -78,14 +74,14 @@ static uint8_t _recompute_scheduler(const uint16_t* entries,uint8_t* values,uint
 		mask&=~clear_mask;
 		min=next+1;
 		uint16_t delta=next-pulse;
-		if (delta>=(PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
+		if (delta>=PWM_MIN_PULSE_US*PWM_TIMER_TICKS_PER_US){
 			pulse=next;
 			deltas[i]=delta;
 			i++;
 		}
 		values[i]=mask;
 	} while (mask);
-	deltas[i]=((PWM_WINDOW_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse;
+	deltas[i]=(PWM_WINDOW_US+PWM_MIN_PULSE_US)*PWM_TIMER_TICKS_PER_US-pulse;
 	return i+1;
 }
 
@@ -149,12 +145,12 @@ ISR(TIMER1_OVF_vect){
 			}
 		}
 		ptr[2]+=(int8_t)(ptr[1]);
-		uint16_t pulse=(ptr[2]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT;
+		uint16_t pulse=ptr[2]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US;
 		uint8_t pins=ROM_LOAD_U8(sequencer_generated_data+i+2);
 		_pwm_pin_entries[pins&15]=pulse;
 		pins>>=4;
 		if (pins!=15){
-			_pwm_pin_entries[pins]=(((255+PWM_SEQUENCER_PULSE_ENCODING_CUTOFF+1)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR)<<PWM_TIMER_TICKS_PER_US_SHIFT)-pulse;
+			_pwm_pin_entries[pins]=(255+PWM_SEQUENCER_PULSE_ENCODING_MIN_PULSE)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US-pulse;
 		}
 _next_channel:
 		ptr+=3;
@@ -181,8 +177,8 @@ void pwm_init(void){
 	TCCR1B=1<<CS11; // divide by 8
 	TCNT1=0;
 	TIFR1=(1<<TOV1)|(1<<OCF1A)|(1<<OCF1B)|(1<<ICF1);
-	OCR1A=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
-	OCR1B=PWM_MIN_PULSE_US<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	OCR1A=PWM_MIN_PULSE_US*PWM_TIMER_TICKS_PER_US;
+	OCR1B=PWM_MIN_PULSE_US*PWM_TIMER_TICKS_PER_US;
 	TIMSK1=(1<<OCIE1A)|(1<<OCIE1B);
 }
 
@@ -192,7 +188,7 @@ void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
 	if (_pwm_sequencer_running){
 		return;
 	}
-	pulse=(pulse>PWM_WINDOW_US?PWM_WINDOW_US:pulse)<<PWM_TIMER_TICKS_PER_US_SHIFT;
+	pulse=(pulse>PWM_WINDOW_US?PWM_WINDOW_US:pulse)*PWM_TIMER_TICKS_PER_US;
 	if (_pwm_pin_entries[pin]==pulse){
 		return;
 	}
