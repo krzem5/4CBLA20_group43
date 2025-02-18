@@ -18,9 +18,25 @@
 
 
 
-static _Bool _exit_program=0;
+#define FLAG_EXIT_PROGRAM 1
+#define FLAG_ESTOP_ENABLED 2
+#define FLAG_ESTOP_BUTTON_DOWN 4
+
+
+
+static uint32_t _flags=0;
 static uint8_t _manual_control_x=0;
 static uint8_t _manual_control_y=0;
+
+
+
+static void _send_estop_packet(void){
+	packet_t packet={
+		.type=PACKET_TYPE_ESTOP
+	};
+	packet_generate_checksum(&packet);
+	serial_send(&packet,sizeof(packet_t));
+}
 
 
 
@@ -48,11 +64,33 @@ static void _send_sequence_start_packet(void){
 
 
 
+static void _toggle_estop(void){
+	if (_flags&FLAG_ESTOP_BUTTON_DOWN){
+		return;
+	}
+	_flags=(_flags^FLAG_ESTOP_ENABLED)|FLAG_ESTOP_BUTTON_DOWN;
+	if (_flags&FLAG_ESTOP_ENABLED){
+		_send_estop_packet();
+	}
+}
+
+
+
 static void _process_terminal_command(void){
-	switch (terminal_get_command()){
-		case 3:
-			_exit_program=1;
-			return;
+	uint16_t command=terminal_get_command();
+	if (command==0x03){
+		_flags|=FLAG_EXIT_PROGRAM;
+		return;
+	}
+	if (command==' '){
+		_toggle_estop();
+		return;
+	}
+	_flags&=~FLAG_ESTOP_BUTTON_DOWN;
+	if (_flags&FLAG_ESTOP_ENABLED){
+		return;
+	}
+	switch (command){
 		case '1':
 			_manual_control_x=0;
 			_send_manual_input_packet();
@@ -103,10 +141,27 @@ static void _process_terminal_command(void){
 
 static void _process_controller_command(ds4_device_t* controller){
 	ds4_recv(controller);
-	controller->led_green=0xff;
+	if (_flags&FLAG_ESTOP_ENABLED){
+		controller->led_red=0xff;
+		controller->led_green=0x00;
+		controller->led_blue=0x00;
+	}
+	else{
+		controller->led_red=0x00;
+		controller->led_green=0xff;
+		controller->led_blue=0x00;
+	}
 	ds4_send(controller);
 	if (controller->buttons&DS4_BUTTON_LOGO){
-		_exit_program=1;
+		_flags|=FLAG_EXIT_PROGRAM;
+		return;
+	}
+	if (controller->buttons&DS4_BUTTON_TOUCHPAD){
+		_toggle_estop();
+		return;
+	}
+	_flags&=~FLAG_ESTOP_BUTTON_DOWN;
+	if (_flags&FLAG_ESTOP_ENABLED){
 		return;
 	}
 	if (controller->buttons&DS4_BUTTON_CROSS){
@@ -145,7 +200,7 @@ int main(void){
 		}
 	};
 	printf("\x1b[?25l");
-	while (!_exit_program&&poll(fds,1+(controller.fd>=0),20)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
+	while (!(_flags&FLAG_EXIT_PROGRAM)&&poll(fds,1+(controller.fd>=0),-1)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command();
 		}
@@ -155,11 +210,7 @@ int main(void){
 		_update_ui(&controller);
 	}
 	printf("\x1b[?25h\r\n");
-	packet_t packet={
-		.type=PACKET_TYPE_ESTOP
-	};
-	packet_generate_checksum(&packet);
-	serial_send(&packet,sizeof(packet_t));
+	_send_estop_packet();
 	ds4_deinit(&controller);
 	terminal_deinit();
 	serial_deinit();
