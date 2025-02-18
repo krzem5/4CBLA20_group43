@@ -45,46 +45,46 @@ static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_SCRTACH_BUFFER_SIZE];
 
 
 ISR(TIMER1_COMPA_vect){
+	PORTB=0;
 	if (_pwm_rr_scheduler_portb_entry_index<6){
 		uint8_t index=_pwm_rr_scheduler_portb_entry_index;
 		_pwm_rr_scheduler_portb_entry_index++;
-		PORTB=1<<index;
 		OCR1A=TCNT1+_pwm_rr_scheduler_entries[index];
+		PORTB=1<<index;
 	}
 	else if (TCNT1-_pwm_rr_scheduler_portb_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
 		_pwm_rr_scheduler_portb_start_time+=(PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
 		_pwm_rr_scheduler_portb_entry_index=0;
-		PORTB=0;
 		OCR1A=_pwm_rr_scheduler_portb_start_time;
 	}
 	else{
 		_pwm_rr_scheduler_portb_start_time=TCNT1;
 		_pwm_rr_scheduler_portb_entry_index=1;
-		PORTB=1;
 		OCR1A=TCNT1+_pwm_rr_scheduler_entries[0];
+		PORTB=1;
 	}
 }
 
 
 
 ISR(TIMER1_COMPB_vect){
+	PORTC=0;
 	if (_pwm_rr_scheduler_portc_entry_index<6){
 		uint8_t index=_pwm_rr_scheduler_portc_entry_index;
 		_pwm_rr_scheduler_portc_entry_index++;
-		PORTC=1<<index;
 		OCR1B=TCNT1+_pwm_rr_scheduler_entries[index+6];
+		PORTC=1<<index;
 	}
 	else if (TCNT1-_pwm_rr_scheduler_portc_start_time<(PWM_MIN_PERIOD_US<<PWM_TIMER_TICKS_PER_US_SHIFT)){
 		_pwm_rr_scheduler_portc_start_time+=(PWM_MIN_PERIOD_US+PWM_MIN_PULSE_US)<<PWM_TIMER_TICKS_PER_US_SHIFT;
 		_pwm_rr_scheduler_portc_entry_index=0;
-		PORTC=0;
 		OCR1B=_pwm_rr_scheduler_portc_start_time;
 	}
 	else{
 		_pwm_rr_scheduler_portc_start_time=TCNT1;
 		_pwm_rr_scheduler_portc_entry_index=1;
-		PORTC=1;
 		OCR1B=TCNT1+_pwm_rr_scheduler_entries[6];
+		PORTC=1;
 	}
 }
 
