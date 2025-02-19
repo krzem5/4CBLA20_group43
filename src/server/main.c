@@ -33,6 +33,8 @@
 static uint32_t _flags=0;
 static uint8_t _manual_control_left_wheel=90;
 static uint8_t _manual_control_right_wheel=90;
+static uint8_t _manual_control_linkage_middle=90;
+static uint16_t _manual_control_linkage_final=900;
 static uint8_t _manual_control_camera_yaw=90;
 static uint8_t _manual_control_camera_pitch=90;
 
@@ -54,8 +56,8 @@ static void _send_manual_input_packet(void){
 		.manual_input={
 			.wheel_left=_manual_control_left_wheel,
 			.wheel_right=_manual_control_right_wheel,
-			.linkage_middle=90,
-			.linkage_final_and_buzzer=((_flags&FLAG_BUZZER)?128:0),
+			.linkage_middle=_manual_control_linkage_middle,
+			.linkage_final_and_buzzer=(_manual_control_linkage_final/10)|((_flags&FLAG_BUZZER)?128:0),
 			.camera_yaw=_manual_control_camera_yaw,
 			.camera_pitch=_manual_control_camera_pitch
 		}
@@ -219,13 +221,28 @@ static void _process_controller_command(ds4_device_t* controller){
 		_manual_control_camera_yaw=(controller->rx+128)*180/255;
 		_manual_control_camera_pitch=(controller->ry+128)*120/255+30;
 	}
+	if (controller->buttons&DS4_BUTTON_UP){
+		_manual_control_linkage_middle=45;
+	}
+	else if (controller->buttons&DS4_BUTTON_DOWN){
+		_manual_control_linkage_middle=135;
+	}
+	else{
+		_manual_control_linkage_middle=90;
+	}
+	if ((controller->buttons&DS4_BUTTON_LEFT)&&_manual_control_linkage_final){
+		_manual_control_linkage_final--;
+	}
+	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<900){
+		_manual_control_linkage_final++;
+	}
 	_send_manual_input_packet();
 }
 
 
 
 static void _update_ui(const ds4_device_t* controller){
-	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m, \x1b[0mY: \x1b[1;95m%3u\x1b[0m, P: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel,_manual_control_camera_yaw,_manual_control_camera_pitch);
+	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m, \x1b[0mA: \x1b[1;95m%3u\x1b[0m, B: \x1b[1;95m%3u\x1b[0m, \x1b[0mY: \x1b[1;95m%3u\x1b[0m, P: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel,_manual_control_linkage_middle,_manual_control_linkage_final/10,_manual_control_camera_yaw,_manual_control_camera_pitch);
 	fflush(stdout);
 }
 
