@@ -27,7 +27,6 @@
 static uint32_t _flags=0;
 static uint8_t _manual_control_left_wheel=0;
 static uint8_t _manual_control_right_wheel=0;
-static uint8_t _manual_control_volume;
 
 
 
@@ -48,8 +47,7 @@ static void _send_manual_input_packet(void){
 			.wheel_left=_manual_control_left_wheel,
 			.wheel_right=_manual_control_right_wheel,
 			.linkage_middle=90,
-			.linkage_final=0,
-			.volume=_manual_control_volume
+			.linkage_final=0
 		}
 	};
 	packet_generate_checksum(&packet);
@@ -180,7 +178,6 @@ static void _process_controller_command(ds4_device_t* controller){
 	else if (_manual_control_right_wheel>135){
 		_manual_control_right_wheel=135;
 	}
-	_manual_control_volume=controller->r2*200/255;
 	_send_manual_input_packet();
 }
 

@@ -36,7 +36,6 @@ int main(void){
 	servo_set_angle(3,90);
 	servo_set_angle(4,90);
 	servo_set_angle(5,90);
-	pwm_set_pulse_width_us(5,0);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)||packet.type==PACKET_TYPE_NONE){
@@ -51,7 +50,6 @@ int main(void){
 			servo_set_angle(3,90);
 			servo_set_angle(4,90);
 			servo_set_angle(5,90);
-			pwm_set_pulse_width_us(5,0);
 		}
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
 			servo_set_angle(0,packet.manual_input.wheel_left);
@@ -59,8 +57,7 @@ int main(void){
 			servo_set_angle(2,packet.manual_input.linkage_middle);
 			servo_set_angle(3,180-packet.manual_input.linkage_middle);
 			servo_set_angle(4,90-packet.manual_input.linkage_final);
-			// servo_set_angle(5,90+packet.manual_input.linkage_final);
-			pwm_set_pulse_width_us(5,packet.manual_input.volume*100);
+			servo_set_angle(5,90+packet.manual_input.linkage_final);
 		}
 		else if (packet.type==PACKET_TYPE_SEQUENCE_START){
 			pwm_sequencer_start();

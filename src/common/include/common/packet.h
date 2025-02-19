@@ -34,7 +34,6 @@ typedef union __attribute__((packed)) _PACKET{
 				uint8_t wheel_right; // 180
 				uint8_t linkage_middle; // 180
 				uint8_t linkage_final; // 90
-				uint8_t volume; // 200
 			} manual_input;
 		};
 	};
