@@ -30,7 +30,7 @@
 
 static uint16_t _pwm_pin_entries[12];
 
-static uint8_t _pwm_parallel_scheduler_update_flags=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC;
+static uint8_t _pwm_parallel_scheduler_update_flags=0;
 
 static uint8_t _pwm_parallel_scheduler_portc_value_entries[7];
 static uint16_t _pwm_parallel_scheduler_portc_delta_entries[7];
@@ -148,10 +148,7 @@ ISR(TIMER1_OVF_vect){
 		uint16_t pulse=ptr[2]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US;
 		uint8_t pins=ROM_LOAD_U8(sequencer_generated_data+i+2);
 		_pwm_pin_entries[pins&15]=pulse;
-		pins>>=4;
-		if (pins!=15){
-			_pwm_pin_entries[pins]=(255+PWM_SEQUENCER_PULSE_ENCODING_MIN_PULSE)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US-pulse;
-		}
+		_pwm_pin_entries[pins>>4]=(255+PWM_SEQUENCER_PULSE_ENCODING_MIN_PULSE)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US-pulse;
 _next_channel:
 		ptr+=3;
 	}
@@ -169,6 +166,7 @@ void pwm_init(void){
 	for (uint32_t i=0;i<12;i++){
 		_pwm_pin_entries[i]=0;
 	}
+	_pwm_parallel_scheduler_update_flags=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC;
 	ADMUX=0;
 	ADCSRA=0;
 	DIDR0=0;
@@ -231,7 +229,7 @@ void pwm_sequencer_start(void){
 	for (uint8_t i=0;i<_pwm_sequencer_channel_count;i+=3){
 		_pwm_sequencer_scratch_buffer[i]=0;
 		_pwm_sequencer_scratch_buffer[i+1]=0;
-		_pwm_sequencer_scratch_buffer[i+2]=PWM_SEQUENCER_PULSE_ENCODING_MIN_PULSE;
+		_pwm_sequencer_scratch_buffer[i+2]=PWM_SEQUENCER_PULSE_ENCODING_AVG_PULSE;
 	}
 	TIMSK1|=1<<TOIE1;
 }

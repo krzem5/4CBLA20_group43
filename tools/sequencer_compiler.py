@@ -27,7 +27,7 @@ def compile_sequence(dst_file_path,data):
 	sequencer_data=[0,0]
 	last_time=0
 	for i in range(0,channel_count):
-		sequencer_data.append(data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else 15)<<4))
+		sequencer_data.append(data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else data[i]["pin_a"])<<4))
 		points=data[i]["points"]
 		for j in range(0,len(points)):
 			last_time=max(last_time,points[j][0])
@@ -36,11 +36,12 @@ def compile_sequence(dst_file_path,data):
 	sequencer_data[0]=channel_count|((sample_count>>8)<<3)
 	sequencer_data[1]=sample_count&0xff
 	channel_offsets=[0 for _ in range(0,channel_count)]
-	channel_values=[ANGLE_TO_ENCODED_PULSE(0) for _ in range(0,channel_count)]
+	channel_values=[ANGLE_TO_ENCODED_PULSE(90) for _ in range(0,channel_count)]
 	channel_last_token_index=[0 for _ in range(0,channel_count)]
 	for i in range(0,sample_count):
 		t=i*sample_delta
 		for j in range(0,channel_count):
+			points=data[j]["points"]
 			offset=channel_offsets[j]
 			if (offset+1<len(points) and points[offset+1][0]<=t):
 				channel_offsets[j]+=1
@@ -50,6 +51,8 @@ def compile_sequence(dst_file_path,data):
 			else:
 				a,b=points[offset],points[offset+1]
 				angle=(0.5-math.cos((t-a[0])/(b[0]-a[0])*math.pi)/2)*(b[1]-a[1])+a[1]
+			if (data[j]["pin_b"] is None):
+				angle=180-angle
 			delta=max(min(ANGLE_TO_ENCODED_PULSE(angle)-channel_values[j],16),-16)
 			channel_values[j]+=delta
 			last_token=sequencer_data[channel_last_token_index[j]]
