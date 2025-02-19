@@ -198,7 +198,7 @@ void ds4_send(const ds4_device_t* device){
 		buffer[8]=device->led_blue;
 		buffer[9]=0;
 		buffer[10]=0;
-		ASSERT(write(device->fd,buffer,sizeof(buffer))==sizeof(buffer));
+		if (write(device->fd,buffer,sizeof(buffer))==sizeof(buffer));
 		return;
 	}
 	uint8_t buffer[79];
@@ -225,5 +225,5 @@ void ds4_send(const ds4_device_t* device){
 	buffer[76]=crc>>8;
 	buffer[77]=crc>>16;
 	buffer[78]=crc>>24;
-	ASSERT(write(device->fd,buffer+1,sizeof(buffer)-1)==sizeof(buffer)-1);
+	if (write(device->fd,buffer+1,sizeof(buffer)-1)==sizeof(buffer)-1);
 }
