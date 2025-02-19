@@ -37,7 +37,7 @@ int main(void){
 	serial_init();
 	pwm_init();
 	servo_set_angle(2,90);
-	servo_set_angle(3,90);
+	servo_set_angle(6,90);
 	servo_set_angle(4,90);
 	while (1){
 		packet_t packet;
@@ -48,12 +48,12 @@ int main(void){
 		if (packet.type==PACKET_TYPE_ESTOP){
 			pwm_sequencer_stop();
 			servo_set_angle(2,90);
-			servo_set_angle(3,90);
+			servo_set_angle(6,90);
 			servo_set_angle(4,90);
 		}
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
 			servo_set_angle(2,packet.manual_input.test_servo_angle3);
-			servo_set_angle(3,packet.manual_input.test_servo_angle);
+			servo_set_angle(6,packet.manual_input.test_servo_angle);
 			servo_set_angle(4,packet.manual_input.test_servo_angle2);
 		}
 		else if (packet.type==PACKET_TYPE_SEQUENCE_START){
