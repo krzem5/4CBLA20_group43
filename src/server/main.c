@@ -27,6 +27,7 @@
 static uint32_t _flags=0;
 static uint8_t _manual_control_x=0;
 static uint8_t _manual_control_y=0;
+static uint8_t _manual_control_z=0;
 
 
 
@@ -45,7 +46,8 @@ static void _send_manual_input_packet(void){
 		.type=PACKET_TYPE_MANUAL_INPUT,
 		.manual_input={
 			.test_servo_angle=_manual_control_x,
-			.test_led_brightness=_manual_control_y*100/180
+			.test_servo_angle2=_manual_control_y,
+			.test_servo_angle3=_manual_control_z
 		}
 	};
 	packet_generate_checksum(&packet);
@@ -170,6 +172,7 @@ static void _process_controller_command(ds4_device_t* controller){
 	}
 	_manual_control_x=controller->l2*180/255;
 	_manual_control_y=controller->r2*180/255;
+	_manual_control_z=(controller->lx+128)*180/255;
 	_send_manual_input_packet();
 }
 

@@ -31,7 +31,8 @@ typedef union __attribute__((packed)) _PACKET{
 		union __attribute__((packed)){
 			struct __attribute__((packed)){
 				uint8_t test_servo_angle;
-				uint8_t test_led_brightness;
+				uint8_t test_servo_angle2;
+				uint8_t test_servo_angle3;
 			} manual_input;
 		};
 	};

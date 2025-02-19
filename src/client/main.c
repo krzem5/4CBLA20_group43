@@ -36,8 +36,9 @@ int main(void){
 	sei();
 	serial_init();
 	pwm_init();
+	servo_set_angle(2,90);
+	servo_set_angle(3,90);
 	servo_set_angle(4,90);
-	pwm_set_pulse_width_us(5,0);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)||packet.type==PACKET_TYPE_NONE){
@@ -46,12 +47,14 @@ int main(void){
 		cli();
 		if (packet.type==PACKET_TYPE_ESTOP){
 			pwm_sequencer_stop();
+			servo_set_angle(2,90);
+			servo_set_angle(3,90);
 			servo_set_angle(4,90);
-			pwm_set_pulse_width_us(5,0);
 		}
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
-			servo_set_angle(4,packet.manual_input.test_servo_angle);
-			pwm_set_pulse_width_us(5,packet.manual_input.test_led_brightness*200);
+			servo_set_angle(2,packet.manual_input.test_servo_angle3);
+			servo_set_angle(3,packet.manual_input.test_servo_angle);
+			servo_set_angle(4,packet.manual_input.test_servo_angle2);
 		}
 		else if (packet.type==PACKET_TYPE_SEQUENCE_START){
 			pwm_sequencer_start();
