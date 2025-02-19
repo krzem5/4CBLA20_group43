@@ -36,7 +36,7 @@ def compile_sequence(dst_file_path,data):
 	sequencer_data[0]=channel_count|((sample_count>>8)<<3)
 	sequencer_data[1]=sample_count&0xff
 	channel_offsets=[0 for _ in range(0,channel_count)]
-	channel_values=[0 for _ in range(0,channel_count)]
+	channel_values=[ANGLE_TO_ENCODED_PULSE(0) for _ in range(0,channel_count)]
 	channel_last_token_index=[0 for _ in range(0,channel_count)]
 	for i in range(0,sample_count):
 		t=i*sample_delta
