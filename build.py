@@ -58,9 +58,9 @@ else:
 		for file in _get_source_files("src/server","src/common"):
 			object_file=f"build/server/{file.replace('/','$')}.o"
 			object_files.append(object_file)
-			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-momit-leaf-frame-pointer","-O3","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/server/include","-Isrc/common/include"]).returncode):
+			if (subprocess.run(["gcc","-Wall","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-momit-leaf-frame-pointer","-O3","-g0","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/server/include","-Isrc/common/include"]).returncode):
 				error=True
-		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server/server"]+object_files+["-ludev"]).returncode):
+		if (error or subprocess.run(["gcc","-O3","-g0","-o","build/server/server"]+object_files+["-ludev","-lm"]).returncode):
 			sys.exit(1)
 	else:
 		object_files=[]
@@ -68,9 +68,9 @@ else:
 		for file in _get_source_files("src/server","src/common"):
 			object_file=f"build/server/{file.replace('/','$')}.o"
 			object_files.append(object_file)
-			if (subprocess.run(["gcc","-Wall","-lm","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-O0","-ggdb","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/server/include","-Isrc/common/include"]).returncode):
+			if (subprocess.run(["gcc","-Wall","-Werror","-march=native","-mno-red-zone","-Wno-strict-aliasing","-O0","-ggdb","-c","-D_GNU_SOURCE","-DNULL=((void*)0)",file,"-o",object_file,"-Isrc/server/include","-Isrc/common/include"]).returncode):
 				error=True
-		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server/server"]+object_files+["-ludev"]).returncode):
+		if (error or subprocess.run(["gcc","-O0","-ggdb","-o","build/server/server"]+object_files+["-ludev","-lm"]).returncode):
 			sys.exit(1)
 	if ("--run" in sys.argv):
 		subprocess.run(["build/server/server"])

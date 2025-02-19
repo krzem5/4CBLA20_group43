@@ -9,6 +9,7 @@
 
 #include <common/packet.h>
 #include <ds4/ds4.h>
+#include <math.h>
 #include <poll.h>
 #include <serial/serial.h>
 #include <stdint.h>
@@ -170,13 +171,36 @@ static void _process_controller_command(ds4_device_t* controller){
 		_send_sequence_start_packet();
 		return;
 	}
-	_manual_control_left_wheel=180-(controller->lx+128)*180/255;
-	_manual_control_right_wheel=180-(controller->ly+128)*180/255;
-	if (_manual_control_right_wheel<45){
-		_manual_control_right_wheel=45;
+	float p=controller->lx/100.0f;
+	float q=controller->ly/100.0f;
+	float r=hypotf(p,q);
+	if (r<0.3f){
+		_manual_control_left_wheel=90;
+		_manual_control_right_wheel=90;
 	}
-	else if (_manual_control_right_wheel>135){
-		_manual_control_right_wheel=135;
+	else{
+		int8_t u=(r>1.0f?1.0f:r)*90;
+		int8_t v=(q*q-p*p)/r*90*(r>1.0f?1/r:1.0f);
+		if (p>=0){
+			if (q>=0){
+				_manual_control_left_wheel=90+u;
+				_manual_control_right_wheel=90+v;
+			}
+			else{
+				_manual_control_left_wheel=90-v;
+				_manual_control_right_wheel=90-u;
+			}
+		}
+		else{
+			if (q>=0){
+				_manual_control_left_wheel=90+v;
+				_manual_control_right_wheel=90+u;
+			}
+			else{
+				_manual_control_left_wheel=90-u;
+				_manual_control_right_wheel=90-v;
+			}
+		}
 	}
 	_send_manual_input_packet();
 }
@@ -184,7 +208,7 @@ static void _process_controller_command(ds4_device_t* controller){
 
 
 static void _update_ui(const ds4_device_t* controller){
-	printf("\x1b[2K\r\x1b[0mX: \x1b[1;95m%3u\x1b[0m, Y: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel);
+	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel);
 	fflush(stdout);
 }
 
