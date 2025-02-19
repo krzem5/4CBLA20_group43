@@ -24,6 +24,9 @@
 #define FLAG_ESTOP_BUTTON_DOWN 4
 #define FLAG_CAMERA_FAST 8
 #define FLAG_CAMERA_FAST_BUTTON_DOWN 16
+#define FLAG_PORTB_ENABLE 32
+#define FLAG_PORTB_ENABLE_BUTTON_DOWN 64
+#define FLAG_BUZZER 128
 
 
 
@@ -52,7 +55,9 @@ static void _send_manual_input_packet(void){
 			.wheel_left=_manual_control_left_wheel,
 			.wheel_right=_manual_control_right_wheel,
 			.linkage_middle=90,
-			.linkage_final=0
+			.linkage_final_and_buzzer=((_flags&FLAG_BUZZER)?128:0),
+			.camera_yaw=_manual_control_camera_yaw,
+			.camera_pitch=_manual_control_camera_pitch
 		}
 	};
 	packet_generate_checksum(&packet);
@@ -64,6 +69,16 @@ static void _send_manual_input_packet(void){
 static void _send_sequence_start_packet(void){
 	packet_t packet={
 		.type=PACKET_TYPE_SEQUENCE_START
+	};
+	packet_generate_checksum(&packet);
+	serial_send(&packet,sizeof(packet_t));
+}
+
+
+
+static void _send_portb_control_packet(_Bool enable){
+	packet_t packet={
+		.type=(enable?PACKET_TYPE_PORTB_ENABLE:PACKET_TYPE_PORTB_DISABLE)
 	};
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
@@ -153,10 +168,15 @@ static void _process_controller_command(ds4_device_t* controller){
 		controller->led_green=0x00;
 		controller->led_blue=0x00;
 	}
-	else{
+	else if (_flags&FLAG_PORTB_ENABLE){
 		controller->led_red=0x00;
 		controller->led_green=0xff;
 		controller->led_blue=0x00;
+	}
+	else{
+		controller->led_red=0x00;
+		controller->led_green=0x00;
+		controller->led_blue=0xff;
 	}
 	ds4_send(controller);
 	if (controller->buttons&DS4_BUTTON_LOGO){
@@ -174,6 +194,22 @@ static void _process_controller_command(ds4_device_t* controller){
 	if (controller->buttons&DS4_BUTTON_CROSS){
 		_send_sequence_start_packet();
 		return;
+	}
+	if (controller->buttons&DS4_BUTTON_SQUARE){
+		if (!(_flags&FLAG_PORTB_ENABLE_BUTTON_DOWN)){
+			_flags^=FLAG_PORTB_ENABLE;
+			_flags|=FLAG_PORTB_ENABLE_BUTTON_DOWN;
+			_send_portb_control_packet(!!(_flags&FLAG_PORTB_ENABLE));
+		}
+	}
+	else{
+		_flags&=~FLAG_PORTB_ENABLE_BUTTON_DOWN;
+	}
+	if (controller->buttons&DS4_BUTTON_R1){
+		_flags|=FLAG_BUZZER;
+	}
+	else{
+		_flags&=~FLAG_BUZZER;
 	}
 	float p=controller->lx/100.0f;
 	float q=controller->ly/100.0f;
@@ -255,6 +291,7 @@ int main(void){
 		}
 	};
 	printf("\x1b[?25l");
+	_send_portb_control_packet(0);
 	while (!(_flags&FLAG_EXIT_PROGRAM)&&poll(fds,1+(controller.fd>=0),-1)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command();
@@ -266,6 +303,7 @@ int main(void){
 	}
 	printf("\x1b[?25h\r\n");
 	_send_estop_packet();
+	_send_portb_control_packet(0);
 	ds4_deinit(&controller);
 	terminal_deinit();
 	serial_deinit();

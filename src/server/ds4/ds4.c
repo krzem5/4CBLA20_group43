@@ -139,7 +139,7 @@ void ds4_recv(ds4_device_t* device){
 		device->buttons|=DS4_BUTTON_CIRCLE;
 	}
 	if (ptr[5]&16){
-		device->buttons|=DS4_BUTTON_SQURARE;
+		device->buttons|=DS4_BUTTON_SQUARE;
 	}
 	if (ptr[5]&128){
 		device->buttons|=DS4_BUTTON_TRIANGLE;

@@ -21,4 +21,12 @@ void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse);
 
 
 
+void pwm_portb_enable(void);
+
+
+
+void pwm_portb_disable(void);
+
+
+
 #endif
