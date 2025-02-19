@@ -35,7 +35,7 @@ typedef union __attribute__((packed)) _PACKET{
 				uint8_t wheel_left; // 180
 				uint8_t wheel_right; // 180
 				uint8_t linkage_middle; // 180
-				uint8_t linkage_final_and_buzzer; // 90
+				uint8_t linkage_final_and_buzzer; // 90 + flag
 				uint8_t camera_yaw; // 180
 				uint8_t camera_pitch; // 180
 			} manual_input;

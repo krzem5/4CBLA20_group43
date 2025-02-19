@@ -187,7 +187,7 @@ void pwm_init(void){
 
 
 void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
-	if (_pwm_sequencer_running){
+	if (_pwm_sequencer_running&&pin<6){
 		return;
 	}
 	pulse=(pulse>PWM_WINDOW_US?PWM_WINDOW_US:pulse)*PWM_TIMER_TICKS_PER_US;
