@@ -166,7 +166,7 @@ void pwm_init(void){
 	for (uint32_t i=0;i<12;i++){
 		_pwm_pin_entries[i]=0;
 	}
-	_pwm_parallel_scheduler_update_flags=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC;
+	_pwm_parallel_scheduler_update_flags=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC|PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTB;
 	ADMUX=0;
 	ADCSRA=0;
 	DIDR0=0;
@@ -199,9 +199,7 @@ void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
 
 
 void pwm_portb_enable(void){
-	_pwm_parallel_scheduler_update_flags|=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTB;
-	_pwm_parallel_scheduler_portb_entry_index=0;
-	_pwm_parallel_scheduler_portb_entry_count=0;
+	_pwm_parallel_scheduler_portb_entry_index=_pwm_parallel_scheduler_portb_entry_count;
 	PORTB=0;
 	OCR1B=0;
 	TIMSK1|=1<<OCIE1B;
