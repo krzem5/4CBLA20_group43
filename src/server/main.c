@@ -112,50 +112,8 @@ static void _process_terminal_command(void){
 	if (_flags&FLAG_ESTOP_ENABLED){
 		return;
 	}
-	switch (command){
-		case '1':
-			_manual_control_left_wheel=0;
-			_send_manual_input_packet();
-			return;
-		case '2':
-			_manual_control_left_wheel=45;
-			_send_manual_input_packet();
-			return;
-		case '3':
-			_manual_control_left_wheel=90;
-			_send_manual_input_packet();
-			return;
-		case '4':
-			_manual_control_left_wheel=135;
-			_send_manual_input_packet();
-			return;
-		case '5':
-			_manual_control_left_wheel=180;
-			_send_manual_input_packet();
-			return;
-		case 'q':
-			_manual_control_right_wheel=0;
-			_send_manual_input_packet();
-			return;
-		case 'w':
-			_manual_control_right_wheel=45;
-			_send_manual_input_packet();
-			return;
-		case 'e':
-			_manual_control_right_wheel=90;
-			_send_manual_input_packet();
-			return;
-		case 'r':
-			_manual_control_right_wheel=135;
-			_send_manual_input_packet();
-			return;
-		case 't':
-			_manual_control_right_wheel=180;
-			_send_manual_input_packet();
-			return;
-		case 's':
-			_send_sequence_start_packet();
-			return;
+	if (command=='s'){
+		_send_sequence_start_packet();
 	}
 }
 
