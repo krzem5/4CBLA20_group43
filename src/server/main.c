@@ -22,12 +22,16 @@
 #define FLAG_EXIT_PROGRAM 1
 #define FLAG_ESTOP_ENABLED 2
 #define FLAG_ESTOP_BUTTON_DOWN 4
+#define FLAG_CAMERA_FAST 8
+#define FLAG_CAMERA_FAST_BUTTON_DOWN 16
 
 
 
 static uint32_t _flags=0;
-static uint8_t _manual_control_left_wheel=0;
-static uint8_t _manual_control_right_wheel=0;
+static uint8_t _manual_control_left_wheel=90;
+static uint8_t _manual_control_right_wheel=90;
+static uint8_t _manual_control_camera_yaw=90;
+static uint8_t _manual_control_camera_pitch=90;
 
 
 
@@ -202,13 +206,32 @@ static void _process_controller_command(ds4_device_t* controller){
 			}
 		}
 	}
+	if (controller->buttons&DS4_BUTTON_TRIANGLE){
+		if (!(_flags&FLAG_CAMERA_FAST_BUTTON_DOWN)){
+			_flags^=FLAG_CAMERA_FAST;
+			_flags|=FLAG_CAMERA_FAST_BUTTON_DOWN;
+		}
+	}
+	else{
+		_flags&=~FLAG_CAMERA_FAST_BUTTON_DOWN;
+	}
+	if (_flags&FLAG_CAMERA_FAST){
+		int16_t x=_manual_control_camera_yaw+(-45<controller->rx&&controller->rx<45?0:controller->rx/100);
+		int16_t y=_manual_control_camera_pitch+(-45<controller->ry&&controller->ry<45?0:controller->ry/100);
+		_manual_control_camera_yaw=(x<0?0:(x>180?180:x));
+		_manual_control_camera_pitch=(y<30?30:(y>150?150:y));
+	}
+	else{
+		_manual_control_camera_yaw=(controller->rx+128)*180/255;
+		_manual_control_camera_pitch=(controller->ry+128)*120/255+30;
+	}
 	_send_manual_input_packet();
 }
 
 
 
 static void _update_ui(const ds4_device_t* controller){
-	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel);
+	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m, \x1b[0mY: \x1b[1;95m%3u\x1b[0m, P: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel,_manual_control_camera_yaw,_manual_control_camera_pitch);
 	fflush(stdout);
 }
 
