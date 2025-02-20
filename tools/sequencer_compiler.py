@@ -19,22 +19,23 @@ TIMER_TICKS=65536
 PWM_SEQUENCER_PULSE_ENCODING_FACTOR=10
 
 ANGLE_TO_ENCODED_PULSE=lambda x:round((600+10*max(min(x,180),0))/PWM_SEQUENCER_PULSE_ENCODING_FACTOR)
+ENCODED_PULSE_TO_ANGLE=lambda x:(x*PWM_SEQUENCER_PULSE_ENCODING_FACTOR-600)/10
 
 
 
-def compile_sequence(dst_file_path,data):
+def compile_sequence(data):
 	channel_count=len(data)
-	sequencer_data=[0,0]
+	out=bytearray(2)
 	last_time=0
 	for i in range(0,channel_count):
-		sequencer_data.append(data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else data[i]["pin_a"])<<4))
+		out.append(data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else data[i]["pin_a"])<<4))
 		points=data[i]["points"]
 		for j in range(0,len(points)):
 			last_time=max(last_time,points[j][0])
 	sample_delta=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
 	sample_count=math.ceil(last_time/sample_delta)+1
-	sequencer_data[0]=channel_count|((sample_count>>8)<<3)
-	sequencer_data[1]=sample_count&0xff
+	out[0]=channel_count|((sample_count>>8)<<3)
+	out[1]=sample_count&0xff
 	channel_offsets=[0 for _ in range(0,channel_count)]
 	channel_values=[ANGLE_TO_ENCODED_PULSE(90) for _ in range(0,channel_count)]
 	channel_last_token_index=[0 for _ in range(0,channel_count)]
@@ -55,20 +56,26 @@ def compile_sequence(dst_file_path,data):
 				angle=180-angle
 			delta=max(min(ANGLE_TO_ENCODED_PULSE(angle)-channel_values[j],16),-16)
 			channel_values[j]+=delta
-			last_token=sequencer_data[channel_last_token_index[j]]
+			last_token=out[channel_last_token_index[j]]
 			if (not delta):
 				if (not i or (last_token&1) or last_token==0xfe):
-					channel_last_token_index[j]=len(sequencer_data)
-					sequencer_data.append(0x00)
+					channel_last_token_index[j]=len(out)
+					out.append(0x00)
 				else:
-					sequencer_data[channel_last_token_index[j]]+=0x02
+					out[channel_last_token_index[j]]+=0x02
 			else:
 				token=((abs(delta)-1)<<1)|(delta<0)
 				if (not i or not (last_token&1) or ((last_token>>1)&31)!=token or (last_token>>6)==3):
-					channel_last_token_index[j]=len(sequencer_data)
-					sequencer_data.append((token<<1)+1)
+					channel_last_token_index[j]=len(out)
+					out.append((token<<1)+1)
 				else:
-					sequencer_data[channel_last_token_index[j]]+=0x40
+					out[channel_last_token_index[j]]+=0x40
+	return out
+
+
+
+def compile_and_write_sequence(dst_file_path,data):
+	sequencer_data=compile_sequence(data)
 	with open(dst_file_path,"w") as wf:
 		wf.write(f"/*\n * Copyright (c) Krzesimir Hyżyk - All Rights Reserved\n * Unauthorized copying of this file, via any medium is strictly prohibited\n * Proprietary and confidential\n * Created on 17/02/2025 by Krzesimir Hyżyk\n */\n\n\n\n#ifndef __SEQUENCER_GENERATED_H_\n#define __SEQUENCER_GENERATED_H_ 1\n#include <common/memory.h>\n#include <stdint.h>\n\n\n\nstatic const ROM_DECL uint8_t sequencer_generated_data[{len(sequencer_data)}]={{")
 		for i in range(0,len(sequencer_data)):
@@ -79,5 +86,6 @@ def compile_sequence(dst_file_path,data):
 
 
 
-with open("../data/sequence.json","r") as rf:
-	compile_sequence("../src/client/include/_sequencer_generated.h",json.loads(rf.read()))
+if (__name__=="__main__"):
+	with open("../data/sequence.json","r") as rf:
+		compile_and_write_sequence("../src/client/include/_sequencer_generated.h",json.loads(rf.read()))
