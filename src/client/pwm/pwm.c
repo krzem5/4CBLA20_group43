@@ -233,7 +233,8 @@ void pwm_sequencer_start(void){
 	for (uint8_t i=0;i<_pwm_sequencer_channel_count;i+=3){
 		_pwm_sequencer_scratch_buffer[i]=0;
 		_pwm_sequencer_scratch_buffer[i+1]=0;
-		_pwm_sequencer_scratch_buffer[i+2]=PWM_SEQUENCER_PULSE_ENCODING_AVG_PULSE;
+		_pwm_sequencer_scratch_buffer[i+2]=ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index);
+		_pwm_sequencer_data_index++;
 	}
 	TIMSK1|=1<<TOIE1;
 }

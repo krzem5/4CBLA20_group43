@@ -21,26 +21,27 @@ PWM_SEQUENCER_PULSE_ENCODING_FACTOR=10
 ANGLE_TO_ENCODED_PULSE=lambda x:round((600+10*max(min(x,180),0))/PWM_SEQUENCER_PULSE_ENCODING_FACTOR)
 ENCODED_PULSE_TO_ANGLE=lambda x:(x*PWM_SEQUENCER_PULSE_ENCODING_FACTOR-600)/10
 
+SAMPLE_DELTA=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
+
 
 
 def compile_sequence(data):
 	channel_count=len(data)
-	out=bytearray(2)
+	out=bytearray((channel_count+1)<<1)
 	last_time=0
 	for i in range(0,channel_count):
-		out.append(data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else data[i]["pin_a"])<<4))
+		out[i+2]=data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else data[i]["pin_a"])<<4)
 		points=data[i]["points"]
 		for j in range(0,len(points)):
 			last_time=max(last_time,points[j][0])
-	sample_delta=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
-	sample_count=math.ceil(last_time/sample_delta)+1
+	sample_count=math.ceil(last_time/SAMPLE_DELTA)+1
 	out[0]=channel_count|((sample_count>>8)<<3)
 	out[1]=sample_count&0xff
 	channel_offsets=[0 for _ in range(0,channel_count)]
-	channel_values=[ANGLE_TO_ENCODED_PULSE(90) for _ in range(0,channel_count)]
+	channel_values=[0 for _ in range(0,channel_count)]
 	channel_last_token_index=[0 for _ in range(0,channel_count)]
 	for i in range(0,sample_count):
-		t=i*sample_delta
+		t=i*SAMPLE_DELTA
 		for j in range(0,channel_count):
 			points=data[j]["points"]
 			offset=channel_offsets[j]
@@ -54,7 +55,11 @@ def compile_sequence(data):
 				angle=(0.5-math.cos((t-a[0])/(b[0]-a[0])*math.pi)/2)*(b[1]-a[1])+a[1]
 			if (data[j]["pin_b"] is None):
 				angle=180-angle
-			delta=max(min(ANGLE_TO_ENCODED_PULSE(angle)-channel_values[j],16),-16)
+			value=ANGLE_TO_ENCODED_PULSE(angle)
+			if (not i):
+				out[channel_count+j+2]=value
+				channel_values[j]=value
+			delta=max(min(value-channel_values[j],16),-16)
 			channel_values[j]+=delta
 			last_token=out[channel_last_token_index[j]]
 			if (not delta):
