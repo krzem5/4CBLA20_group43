@@ -156,6 +156,9 @@ _next_channel:
 	_pwm_sequencer_sample_index++;
 	if (_pwm_sequencer_sample_index>=_pwm_sequencer_sample_count){
 		_pwm_sequencer_running=0;
+		if (!(TIMSK1&(1<<OCIE1B))){
+			PORTB=0;
+		}
 		TIMSK1&=~(1<<TOIE1);
 	}
 }
@@ -218,6 +221,9 @@ void pwm_sequencer_start(void){
 	if (_pwm_sequencer_running){
 		return;
 	}
+	if (!(TIMSK1&(1<<OCIE1B))){
+		PORTB=0x20;
+	}
 	_pwm_sequencer_running=1;
 	_pwm_sequencer_channel_count=ROM_LOAD_U8(sequencer_generated_data);
 	_pwm_sequencer_sample_count=ROM_LOAD_U8(sequencer_generated_data+1)|((_pwm_sequencer_channel_count&0xf8)<<5);
@@ -236,5 +242,8 @@ void pwm_sequencer_start(void){
 
 void pwm_sequencer_stop(void){
 	_pwm_sequencer_running=0;
+	if (!(TIMSK1&(1<<OCIE1B))){
+		PORTB=0;
+	}
 	TIMSK1&=~(1<<TOIE1);
 }
