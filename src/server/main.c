@@ -58,8 +58,8 @@ static void _send_manual_input_packet(void){
 			.wheel_right=_manual_control_right_wheel,
 			.linkage_middle=_manual_control_linkage_middle,
 			.linkage_final_and_buzzer=(_manual_control_linkage_final/10)|((_flags&FLAG_BUZZER)?128:0),
-			.camera_yaw=_manual_control_camera_yaw,
-			.camera_pitch=_manual_control_camera_pitch
+			.camera_yaw=180-_manual_control_camera_yaw,
+			.camera_pitch=180-_manual_control_camera_pitch
 		}
 	};
 	packet_generate_checksum(&packet);
