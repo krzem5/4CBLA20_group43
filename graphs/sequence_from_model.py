@@ -65,7 +65,6 @@ FINAL_LINKAGE_MOTION=[
 
 
 
-
 def _encode_delta(delta,out):
 	profile=SERVIO_ACCELERATION_PROFILE_MARGIN
 	value=90+delta/(1-profile)/SERVIO_MAX_ANGULAR_VELOCITY*90

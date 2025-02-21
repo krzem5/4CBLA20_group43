@@ -43,7 +43,7 @@ static uint8_t _pwm_parallel_scheduler_portb_entry_index=0;
 static uint8_t _pwm_parallel_scheduler_portb_entry_count=0;
 
 static uint8_t _pwm_sequencer_running=0;
-static uint8_t _pwm_sequencer_channel_count;
+static uint8_t _pwm_sequencer_channel_count_plus_2;
 static uint16_t _pwm_sequencer_sample_count;
 static uint16_t _pwm_sequencer_sample_index;
 static uint16_t _pwm_sequencer_data_index;
@@ -123,7 +123,7 @@ ISR(TIMER1_COMPB_vect){
 
 ISR(TIMER1_OVF_vect){
 	uint8_t* ptr=_pwm_sequencer_scratch_buffer;
-	for (uint8_t i=0;i<_pwm_sequencer_channel_count;i++){
+	for (uint8_t i=2;i<_pwm_sequencer_channel_count_plus_2;i++){
 		if (ptr[0]){
 			ptr[0]--;
 			if (!ptr[1]){
@@ -146,13 +146,13 @@ ISR(TIMER1_OVF_vect){
 		}
 		ptr[2]+=(int8_t)(ptr[1]);
 		uint16_t pulse=ptr[2]*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US;
-		uint8_t pins=ROM_LOAD_U8(sequencer_generated_data+i+2);
+		uint8_t pins=ROM_LOAD_U8(sequencer_generated_data+i);
 		_pwm_pin_entries[pins&15]=pulse;
 		_pwm_pin_entries[pins>>4]=(255+PWM_SEQUENCER_PULSE_ENCODING_MIN_PULSE)*PWM_SEQUENCER_PULSE_ENCODING_FACTOR*PWM_TIMER_TICKS_PER_US-pulse;
+		_pwm_parallel_scheduler_update_flags|=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC;
 _next_channel:
 		ptr+=3;
 	}
-	_pwm_parallel_scheduler_update_flags|=PWM_PARALLEL_SCHEDULER_UPDATE_FLAG_PORTC;
 	_pwm_sequencer_sample_index++;
 	if (_pwm_sequencer_sample_index>=_pwm_sequencer_sample_count){
 		_pwm_sequencer_running=0;
@@ -225,12 +225,12 @@ void pwm_sequencer_start(void){
 		PORTB=0x20;
 	}
 	_pwm_sequencer_running=1;
-	_pwm_sequencer_channel_count=ROM_LOAD_U8(sequencer_generated_data);
-	_pwm_sequencer_sample_count=ROM_LOAD_U8(sequencer_generated_data+1)|((_pwm_sequencer_channel_count&0xf8)<<5);
-	_pwm_sequencer_channel_count&=7;
+	_pwm_sequencer_channel_count_plus_2=ROM_LOAD_U8(sequencer_generated_data);
+	_pwm_sequencer_sample_count=ROM_LOAD_U8(sequencer_generated_data+1)|((_pwm_sequencer_channel_count_plus_2&0xf8)<<5);
+	_pwm_sequencer_channel_count_plus_2=(_pwm_sequencer_channel_count_plus_2&7)+2;
 	_pwm_sequencer_sample_index=0;
-	_pwm_sequencer_data_index=_pwm_sequencer_channel_count+2;
-	for (uint8_t i=0;i<_pwm_sequencer_channel_count;i+=3){
+	_pwm_sequencer_data_index=_pwm_sequencer_channel_count_plus_2;
+	for (uint8_t i=0;i<_pwm_sequencer_channel_count_plus_2-2;i+=3){
 		_pwm_sequencer_scratch_buffer[i]=0;
 		_pwm_sequencer_scratch_buffer[i+1]=0;
 		_pwm_sequencer_scratch_buffer[i+2]=ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index);
