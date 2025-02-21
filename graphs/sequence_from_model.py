@@ -103,4 +103,4 @@ def _compute_final_linkage_channel():
 
 
 with open(FILE_PATH,"w") as wf:
-	wf.write(json.dumps([_compute_wheel_channel(),_compute_middle_linkage_channel(),_compute_final_linkage_channel()]))
+	wf.write(json.dumps([_compute_wheel_channel(),_compute_middle_linkage_channel(),_compute_final_linkage_channel()],indent="\t"))
