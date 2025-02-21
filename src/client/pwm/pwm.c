@@ -47,10 +47,10 @@ ISR(TIMER1_COMPA_vect){
 		if (__builtin_expect(_pwm_parallel_scheduler_update_flag,0)){
 			_pwm_parallel_scheduler_update_flag=0;
 			_pwm_parallel_scheduler_value_entries[0]=0x3f;
+			_pwm_parallel_scheduler_entry_count=0;
 			uint8_t mask=0x3f;
 			uint16_t min=0;
 			uint16_t pulse=0;
-			uint8_t i=0;
 			do{
 				uint8_t j=0;
 				for (;_pwm_pin_entries[j]<min;j++);
@@ -70,13 +70,13 @@ ISR(TIMER1_COMPA_vect){
 				uint16_t delta=next-pulse;
 				if (delta>=PWM_MIN_PULSE_US*PWM_TIMER_TICKS_PER_US){
 					pulse=next;
-					_pwm_parallel_scheduler_delta_entries[i]=delta;
-					i++;
+					_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_count]=delta;
+					_pwm_parallel_scheduler_entry_count++;
 				}
-				_pwm_parallel_scheduler_value_entries[i]=mask;
+				_pwm_parallel_scheduler_value_entries[_pwm_parallel_scheduler_entry_count]=mask;
 			} while (mask);
-			_pwm_parallel_scheduler_delta_entries[i]=(PWM_WINDOW_US+PWM_MIN_PULSE_US)*PWM_TIMER_TICKS_PER_US-pulse;
-			_pwm_parallel_scheduler_entry_count=i+1;
+			_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_count]=(PWM_WINDOW_US+PWM_MIN_PULSE_US)*PWM_TIMER_TICKS_PER_US-pulse;
+			_pwm_parallel_scheduler_entry_count++;
 		}
 	}
 	uint8_t value=_pwm_parallel_scheduler_value_entries[_pwm_parallel_scheduler_entry_index];
