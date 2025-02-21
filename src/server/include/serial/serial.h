@@ -12,7 +12,7 @@
 
 
 
-#define SERIAL_SPEED B115200
+#define SERIAL_SPEED B2000000
 #define SERIAL_PARITY 0
 
 
