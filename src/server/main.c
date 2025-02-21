@@ -22,11 +22,6 @@
 #define FLAG_EXIT_PROGRAM 1
 #define FLAG_ESTOP_ENABLED 2
 #define FLAG_ESTOP_BUTTON_DOWN 4
-#define FLAG_CAMERA_FAST 8
-#define FLAG_CAMERA_FAST_BUTTON_DOWN 16
-#define FLAG_PORTB_ENABLE 32
-#define FLAG_PORTB_ENABLE_BUTTON_DOWN 64
-#define FLAG_BUZZER 128
 
 
 
@@ -35,8 +30,6 @@ static uint8_t _manual_control_left_wheel=90;
 static uint8_t _manual_control_right_wheel=90;
 static uint8_t _manual_control_linkage_middle=90;
 static uint16_t _manual_control_linkage_final=900;
-static uint8_t _manual_control_camera_yaw=90;
-static uint8_t _manual_control_camera_pitch=90;
 
 
 
@@ -57,9 +50,7 @@ static void _send_manual_input_packet(void){
 			.wheel_left=_manual_control_left_wheel,
 			.wheel_right=_manual_control_right_wheel,
 			.linkage_middle=_manual_control_linkage_middle,
-			.linkage_final_and_buzzer=(_manual_control_linkage_final/10)|((_flags&FLAG_BUZZER)?128:0),
-			.camera_yaw=180-_manual_control_camera_yaw,
-			.camera_pitch=180-_manual_control_camera_pitch
+			.linkage_final=_manual_control_linkage_final/10
 		}
 	};
 	packet_generate_checksum(&packet);
@@ -71,16 +62,6 @@ static void _send_manual_input_packet(void){
 static void _send_sequence_start_packet(void){
 	packet_t packet={
 		.type=PACKET_TYPE_SEQUENCE_START
-	};
-	packet_generate_checksum(&packet);
-	serial_send(&packet,sizeof(packet_t));
-}
-
-
-
-static void _send_portb_control_packet(_Bool enable){
-	packet_t packet={
-		.type=(enable?PACKET_TYPE_PORTB_ENABLE:PACKET_TYPE_PORTB_DISABLE)
 	};
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
@@ -128,15 +109,10 @@ static void _process_controller_command(ds4_device_t* controller){
 		controller->led_green=0x00;
 		controller->led_blue=0x00;
 	}
-	else if (_flags&FLAG_PORTB_ENABLE){
+	else{
 		controller->led_red=0x00;
 		controller->led_green=0xff;
 		controller->led_blue=0x00;
-	}
-	else{
-		controller->led_red=0x00;
-		controller->led_green=0x00;
-		controller->led_blue=0xff;
 	}
 	ds4_send(controller);
 	if (controller->buttons&DS4_BUTTON_LOGO){
@@ -154,22 +130,6 @@ static void _process_controller_command(ds4_device_t* controller){
 	if (controller->buttons&DS4_BUTTON_CROSS){
 		_send_sequence_start_packet();
 		return;
-	}
-	if (controller->buttons&DS4_BUTTON_SQUARE){
-		if (!(_flags&FLAG_PORTB_ENABLE_BUTTON_DOWN)){
-			_flags^=FLAG_PORTB_ENABLE;
-			_flags|=FLAG_PORTB_ENABLE_BUTTON_DOWN;
-			_send_portb_control_packet(!!(_flags&FLAG_PORTB_ENABLE));
-		}
-	}
-	else{
-		_flags&=~FLAG_PORTB_ENABLE_BUTTON_DOWN;
-	}
-	if (controller->buttons&DS4_BUTTON_R1){
-		_flags|=FLAG_BUZZER;
-	}
-	else{
-		_flags&=~FLAG_BUZZER;
 	}
 	float p=controller->lx/100.0f;
 	float q=controller->ly/100.0f;
@@ -202,25 +162,6 @@ static void _process_controller_command(ds4_device_t* controller){
 			}
 		}
 	}
-	if (controller->buttons&DS4_BUTTON_TRIANGLE){
-		if (!(_flags&FLAG_CAMERA_FAST_BUTTON_DOWN)){
-			_flags^=FLAG_CAMERA_FAST;
-			_flags|=FLAG_CAMERA_FAST_BUTTON_DOWN;
-		}
-	}
-	else{
-		_flags&=~FLAG_CAMERA_FAST_BUTTON_DOWN;
-	}
-	if (_flags&FLAG_CAMERA_FAST){
-		int16_t x=_manual_control_camera_yaw+(-45<controller->rx&&controller->rx<45?0:controller->rx/100);
-		int16_t y=_manual_control_camera_pitch+(-45<controller->ry&&controller->ry<45?0:controller->ry/100);
-		_manual_control_camera_yaw=(x<0?0:(x>180?180:x));
-		_manual_control_camera_pitch=(y<30?30:(y>150?150:y));
-	}
-	else{
-		_manual_control_camera_yaw=(controller->rx+128)*180/255;
-		_manual_control_camera_pitch=(controller->ry+128)*120/255+30;
-	}
 	if (controller->buttons&DS4_BUTTON_UP){
 		_manual_control_linkage_middle=45;
 	}
@@ -242,7 +183,7 @@ static void _process_controller_command(ds4_device_t* controller){
 
 
 static void _update_ui(const ds4_device_t* controller){
-	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m, \x1b[0mA: \x1b[1;95m%3u\x1b[0m, B: \x1b[1;95m%3u\x1b[0m, \x1b[0mY: \x1b[1;95m%3u\x1b[0m, P: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel,_manual_control_linkage_middle,_manual_control_linkage_final/10,_manual_control_camera_yaw,_manual_control_camera_pitch);
+	printf("\x1b[2K\r\x1b[0mL: \x1b[1;95m%3u\x1b[0m, R: \x1b[1;95m%3u\x1b[0m, \x1b[0mA: \x1b[1;95m%3u\x1b[0m, B: \x1b[1;95m%3u\x1b[0m",_manual_control_left_wheel,_manual_control_right_wheel,_manual_control_linkage_middle,_manual_control_linkage_final/10);
 	fflush(stdout);
 }
 
@@ -266,7 +207,6 @@ int main(void){
 		}
 	};
 	printf("\x1b[?25l");
-	_send_portb_control_packet(0);
 	while (!(_flags&FLAG_EXIT_PROGRAM)&&poll(fds,1+(controller.fd>=0),-1)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command();
@@ -278,7 +218,6 @@ int main(void){
 	}
 	printf("\x1b[?25h\r\n");
 	_send_estop_packet();
-	_send_portb_control_packet(0);
 	ds4_deinit(&controller);
 	terminal_deinit();
 	serial_deinit();

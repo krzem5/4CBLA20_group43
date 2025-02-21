@@ -20,8 +20,6 @@
 #define PACKET_TYPE_ESTOP 0x01
 #define PACKET_TYPE_MANUAL_INPUT 0x02
 #define PACKET_TYPE_SEQUENCE_START 0x03
-#define PACKET_TYPE_PORTB_ENABLE 0x04
-#define PACKET_TYPE_PORTB_DISABLE 0x05
 
 
 
@@ -35,9 +33,7 @@ typedef union __attribute__((packed)) _PACKET{
 				uint8_t wheel_left; // 180
 				uint8_t wheel_right; // 180
 				uint8_t linkage_middle; // 180
-				uint8_t linkage_final_and_buzzer; // 90 + flag
-				uint8_t camera_yaw; // 180
-				uint8_t camera_pitch; // 180
+				uint8_t linkage_final; // 90
 			} manual_input;
 		};
 	};

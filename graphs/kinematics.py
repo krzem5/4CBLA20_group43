@@ -18,9 +18,9 @@ import sequencer_compiler
 FILE_PATH="../data/sequence.json"
 
 CHANNELS=[
-	("#1f77b4","Channel A"),
-	("#2ca02c","Channel B"),
-	("#d62728","Channel C"),
+	("#1f77b4","1\\textsuperscript{st} linkage"),
+	("#2ca02c","2\\textsuperscript{nd} linkage"),
+	("#d62728","3\\textsuperscript{rd} linkage"),
 ]
 
 # #1f77b4 #ff7f0e #2ca02c #d62728 #9467bd #8c564b #e377c2 #7f7f7f #bcbd22 #17becf
