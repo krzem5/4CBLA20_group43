@@ -33,8 +33,7 @@ static uint16_t _pwm_parallel_scheduler_delta_entries[7];
 static uint8_t _pwm_parallel_scheduler_entry_index=0;
 static uint8_t _pwm_parallel_scheduler_entry_count=0;
 
-static uint8_t _pwm_sequencer_running=0;
-static uint8_t _pwm_sequencer_channel_count_plus_2;
+static uint8_t _pwm_sequencer_channel_count_plus_2=0;
 static uint16_t _pwm_sequencer_sample_index;
 static const uint8_t* _pwm_sequencer_data_ptr;
 static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_MAX_CHANNEL_COUNT*3];
@@ -42,43 +41,46 @@ static uint8_t _pwm_sequencer_scratch_buffer[PWM_SEQUENCER_MAX_CHANNEL_COUNT*3];
 
 
 ISR(TIMER1_COMPA_vect){
-	if (__builtin_expect(_pwm_parallel_scheduler_entry_index==_pwm_parallel_scheduler_entry_count,0)){
-		_pwm_parallel_scheduler_entry_index=0;
-		if (__builtin_expect(_pwm_parallel_scheduler_update_flag,0)){
-			_pwm_parallel_scheduler_update_flag=0;
-			_pwm_parallel_scheduler_value_entries[0]=0x3f;
-			_pwm_parallel_scheduler_entry_count=0;
-			uint8_t mask=0x3f;
-			uint16_t min=0;
-			uint16_t pulse=0;
-			do{
-				uint8_t j=0;
-				for (;_pwm_pin_entries[j]<min;j++);
-				uint16_t next=_pwm_pin_entries[j];
-				uint8_t clear_mask=1<<j;
-				for (j++;j<6;j++){
-					if (_pwm_pin_entries[j]==next){
-						clear_mask|=1<<j;
-					}
-					else if (_pwm_pin_entries[j]>=min&&_pwm_pin_entries[j]<next){
-						next=_pwm_pin_entries[j];
-						clear_mask=1<<j;
-					}
-				}
-				mask&=~clear_mask;
-				min=next+1;
-				uint16_t delta=next-pulse;
-				if (delta>=PWM_MIN_PULSE_US*PWM_TIMER_TICKS_PER_US){
-					pulse=next;
-					_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_count]=delta;
-					_pwm_parallel_scheduler_entry_count++;
-				}
-				_pwm_parallel_scheduler_value_entries[_pwm_parallel_scheduler_entry_count]=mask;
-			} while (mask);
-			_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_count]=(PWM_WINDOW_US+PWM_MIN_PULSE_US)*PWM_TIMER_TICKS_PER_US-pulse;
+	if (_pwm_parallel_scheduler_entry_index!=_pwm_parallel_scheduler_entry_count){
+		goto _process_next_scheduler_entry;
+	}
+	_pwm_parallel_scheduler_entry_index=0;
+	if (!_pwm_parallel_scheduler_update_flag){
+		goto _process_next_scheduler_entry;
+	}
+	_pwm_parallel_scheduler_update_flag=0;
+	_pwm_parallel_scheduler_value_entries[0]=0x3f;
+	_pwm_parallel_scheduler_entry_count=0;
+	uint8_t mask=0x3f;
+	uint16_t min=0;
+	uint16_t pulse=0;
+	do{
+		uint8_t j=0;
+		for (;_pwm_pin_entries[j]<min;j++);
+		uint16_t next=_pwm_pin_entries[j];
+		uint8_t clear_mask=1<<j;
+		for (j++;j<6;j++){
+			if (_pwm_pin_entries[j]==next){
+				clear_mask|=1<<j;
+			}
+			else if (_pwm_pin_entries[j]>=min&&_pwm_pin_entries[j]<next){
+				next=_pwm_pin_entries[j];
+				clear_mask=1<<j;
+			}
+		}
+		mask&=~clear_mask;
+		min=next+1;
+		uint16_t delta=next-pulse;
+		if (delta>=PWM_MIN_PULSE_US*PWM_TIMER_TICKS_PER_US){
+			pulse=next;
+			_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_count]=delta;
 			_pwm_parallel_scheduler_entry_count++;
 		}
-	}
+		_pwm_parallel_scheduler_value_entries[_pwm_parallel_scheduler_entry_count]=mask;
+	} while (mask);
+	_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_count]=(PWM_WINDOW_US+PWM_MIN_PULSE_US)*PWM_TIMER_TICKS_PER_US-pulse;
+	_pwm_parallel_scheduler_entry_count++;
+_process_next_scheduler_entry:
 	uint8_t value=_pwm_parallel_scheduler_value_entries[_pwm_parallel_scheduler_entry_index];
 	uint16_t delta=_pwm_parallel_scheduler_delta_entries[_pwm_parallel_scheduler_entry_index];
 	_pwm_parallel_scheduler_entry_index++;
@@ -122,7 +124,7 @@ _next_channel:
 	}
 	_pwm_sequencer_sample_index--;
 	if (!_pwm_sequencer_sample_index){
-		_pwm_sequencer_running=0;
+		_pwm_sequencer_channel_count_plus_2=0;
 		PORTB=0;
 		TIMSK1&=~(1<<TOIE1);
 	}
@@ -153,7 +155,7 @@ void pwm_init(void){
 
 
 void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
-	if (_pwm_sequencer_running){
+	if (_pwm_sequencer_channel_count_plus_2){
 		return;
 	}
 	pulse=(pulse>PWM_WINDOW_US?PWM_WINDOW_US:pulse)*PWM_TIMER_TICKS_PER_US;
@@ -167,10 +169,9 @@ void pwm_set_pulse_width_us(uint8_t pin,uint16_t pulse){
 
 
 void pwm_sequencer_start(void){
-	if (_pwm_sequencer_running){
+	if (_pwm_sequencer_channel_count_plus_2){
 		return;
 	}
-	_pwm_sequencer_running=1;
 	_pwm_sequencer_channel_count_plus_2=ROM_LOAD_U8(sequencer_generated_data);
 	_pwm_sequencer_sample_index=ROM_LOAD_U8(sequencer_generated_data+1)|((_pwm_sequencer_channel_count_plus_2>>3)<<8);
 	_pwm_sequencer_channel_count_plus_2=(_pwm_sequencer_channel_count_plus_2&7)+2;
@@ -188,7 +189,7 @@ void pwm_sequencer_start(void){
 
 
 void pwm_sequencer_stop(void){
-	_pwm_sequencer_running=0;
+	_pwm_sequencer_channel_count_plus_2=0;
 	PORTB=0;
 	TIMSK1&=~(1<<TOIE1);
 }
