@@ -35,10 +35,10 @@ ISR(USART_RX_vect){
 
 
 
-void serial_init(void){
+void serial_init(void){ // 2Mbps
 	UCSR0B=0;
 	UCSR0A=1<<U2X0;
-	UBRR0H=0; // 2Mbps
+	UBRR0H=0;
 	UBRR0L=0;
 	UCSR0C=(1<<UCSZ00)|(1<<UCSZ01);
 	UCSR0B=(1<<RXEN0)|(1<<RXCIE0);
