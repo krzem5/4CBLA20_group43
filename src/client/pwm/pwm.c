@@ -174,11 +174,11 @@ void pwm_sequencer_start(void){
 	PORTB=0x20;
 	_pwm_sequencer_running=1;
 	_pwm_sequencer_channel_count_plus_2=ROM_LOAD_U8(sequencer_generated_data);
-	_pwm_sequencer_sample_count=ROM_LOAD_U8(sequencer_generated_data+1)|((_pwm_sequencer_channel_count_plus_2&0xf8)<<5);
+	_pwm_sequencer_sample_count=ROM_LOAD_U8(sequencer_generated_data+1)|((_pwm_sequencer_channel_count_plus_2>>3)<<8);
 	_pwm_sequencer_channel_count_plus_2=(_pwm_sequencer_channel_count_plus_2&7)+2;
 	_pwm_sequencer_sample_index=0;
 	_pwm_sequencer_data_index=_pwm_sequencer_channel_count_plus_2;
-	for (uint8_t i=0;i<_pwm_sequencer_channel_count_plus_2-2;i+=3){
+	for (uint8_t i=0;i<(_pwm_sequencer_channel_count_plus_2-2)*3;i+=3){
 		_pwm_sequencer_scratch_buffer[i]=0;
 		_pwm_sequencer_scratch_buffer[i+1]=0;
 		_pwm_sequencer_scratch_buffer[i+2]=ROM_LOAD_U8(sequencer_generated_data+_pwm_sequencer_data_index);
