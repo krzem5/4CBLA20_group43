@@ -80,10 +80,10 @@ for i in range(0,sample_count):
 		y[j//3].append(sequencer_compiler.ENCODED_PULSE_TO_ANGLE(state[j+2]))
 plt.rcParams["text.usetex"]=True
 fig,ax=plt.subplots(1)
+avg_err=0
+max_err=0
 for i in range(0,channel_count):
 	ax.plot(theoretical_x,theoretical_y[i],"--",color=CHANNELS[i][0],alpha=0.5,linewidth=5)
-	avg_err=0
-	max_err=0
 	j=0
 	for k in range(0,len(theoretical_x)):
 		if (j+1<len(x) and theoretical_x[k]>=x[j+1]):
@@ -93,10 +93,9 @@ for i in range(0,channel_count):
 		err=abs((theoretical_x[k]-x[j])/(x[j+1]-x[j])*(y[i][j+1]-y[i][j])+y[i][j]-theoretical_y[i][k])
 		avg_err+=err
 		max_err=max(max_err,err)
-	print(f"[{i}] avg={avg_err/(end_time/DELTA_TIME):.3f} deg, max={max_err:.3f} deg")
 for i in range(0,channel_count):
 	ax.plot(x,y[i],"-",color=CHANNELS[i][0],label=CHANNELS[i][1])
-print(f"compressed: {size_compressed}, uncompressed: {size_uncompressed} => {size_compressed/size_uncompressed-1:.1%}")
+print(f"avg={avg_err/(channel_count*end_time/DELTA_TIME):.3f} deg, max={max_err:.3f} deg\ncompressed: {size_compressed}, uncompressed: {size_uncompressed} => {size_compressed/size_uncompressed-1:.1%}")
 fig.set_size_inches(13,4,forward=True)
 plt.xlabel("Time $\\left[\\mathrm{s}\\right]$")
 plt.ylabel("Angle $\\left[\\mathrm{deg}\\right]$")
