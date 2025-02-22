@@ -41,7 +41,7 @@ ROBOT_LINKAGE_CURVATURE_POINTS=16
 # 9. reset 2nd+3rd linkage
 alpha=math.asin(STAIR_1_HEIGHT/ROBOT_L2_LENGTH)
 beta=math.asin(STAIR_2_HEIGHT/ROBOT_L2_LENGTH)
-gamma=0.02
+gamma=0.03
 p=0.4
 q=0.25
 STEP1_TIME=1.0
