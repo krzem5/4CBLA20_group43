@@ -115,8 +115,8 @@ fig,ax=plt.subplots(1)
 for i in range(0,9):
 	x,y=i%3,2-i//3
 	ax.text(x+CORNER_TEXT_OFFSET,y+1-CORNER_TEXT_OFFSET,f"${i+1}$",ha="left",va="top",size="xx-large")
-	ax.fill(*_generate_stair_path(x,y),color="#8c564b",alpha=0.5)
-	ax.plot(*_generate_stair_path(x,y),"-",color="#8c564b")
+	ax.fill(*_generate_stair_path(x,y),color="#7f7f7f",alpha=0.5)
+	ax.plot(*_generate_stair_path(x,y),"-",color="#7f7f7f")
 	rx,ry,ra,rb,rc=ROBOT_POSITIONS[i]
 	_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc)
 ax.plot([1,1],[0,3],"-",color="#000000",lw=0.8)
