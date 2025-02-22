@@ -102,7 +102,7 @@ def _render_linkage(ax,x0,y0,x1,y1,r,color):
 
 
 def _render_robot(ax,x,y,a,b,c):
-	_render_linkage(ax,x,y,x+math.cos(a)*ROBOT_L1_LENGTH*SCALE,y+math.sin(a)*ROBOT_L1_LENGTH*SCALE,ROBOT_L1_RADIUS,"#1f77b4")
+	_render_linkage(ax,x,y,x+math.cos(a)*(ROBOT_L1_LENGTH-ROBOT_L1_RADIUS)*SCALE,y+math.sin(a)*(ROBOT_L1_LENGTH-ROBOT_L1_RADIUS)*SCALE,ROBOT_L1_RADIUS,"#1f77b4")
 	_render_linkage(ax,x,y,x+math.cos(b)*ROBOT_L2_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE,ROBOT_L2_RADIUS,"#2ca02c")
 	_render_linkage(ax,x+math.cos(b)*ROBOT_L2_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE,x+math.cos(b)*ROBOT_L2_LENGTH*SCALE-math.cos(b+c)*ROBOT_L3_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE-math.sin(b+c)*ROBOT_L3_LENGTH*SCALE,ROBOT_L3_RADIUS,"#d62728")
 
