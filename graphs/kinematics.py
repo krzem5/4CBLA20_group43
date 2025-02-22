@@ -95,7 +95,7 @@ for i in range(0,channel_count):
 		max_err=max(max_err,err)
 for i in range(0,channel_count):
 	ax.plot(x,y[i],"-",color=CHANNELS[i][0],label=CHANNELS[i][1])
-print(f"avg={avg_err/(channel_count*end_time/DELTA_TIME):.3f} deg, max={max_err:.3f} deg\ncompressed: {size_compressed}, uncompressed: {size_uncompressed} => {size_compressed/size_uncompressed-1:.1%}")
+print(f"avg={avg_err/(channel_count*end_time/DELTA_TIME):.3f} deg, max={max_err:.3f} deg\ncompressed: {size_compressed}, uncompressed: {size_uncompressed} => {size_compressed/size_uncompressed-1:.1%} ({math.ceil(size_uncompressed/size_compressed)}:1)")
 fig.set_size_inches(13,4,forward=True)
 plt.xlabel("Time $\\left[\\mathrm{s}\\right]$")
 plt.ylabel("Angle $\\left[\\mathrm{deg}\\right]$")
