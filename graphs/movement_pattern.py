@@ -28,7 +28,7 @@ ROBOT_L3_LENGTH=1.1
 ROBOT_L1_RADIUS=0.225
 ROBOT_L2_RADIUS=0.2
 ROBOT_L3_RADIUS=0.15
-ROBOT_LINKAGE_CURVATURE_POINTS=16
+CURVE_POINTS=16
 
 # 1. lift 1st stage up
 # 2. rotate onto 1st ledge
@@ -88,14 +88,14 @@ def _render_linkage(ax,x0,y0,x1,y1,r,color):
 	a=math.atan2(y1-y0,x1-x0)+math.pi/2
 	x=[]
 	y=[]
-	for i in range(0,ROBOT_LINKAGE_CURVATURE_POINTS+1):
+	for i in range(0,CURVE_POINTS+1):
 		x.append(x0+math.cos(a)*r*SCALE)
 		y.append(y0+math.sin(a)*r*SCALE)
-		a+=math.pi/ROBOT_LINKAGE_CURVATURE_POINTS
-	for i in range(0,ROBOT_LINKAGE_CURVATURE_POINTS+1):
+		a+=math.pi/CURVE_POINTS
+	for i in range(0,CURVE_POINTS+1):
 		x.append(x1+math.cos(a)*r*SCALE)
 		y.append(y1+math.sin(a)*r*SCALE)
-		a+=math.pi/ROBOT_LINKAGE_CURVATURE_POINTS
+		a+=math.pi/CURVE_POINTS
 	x.append(x[0])
 	y.append(y[0])
 	ax.fill(x,y,color=color,alpha=0.5)
@@ -103,10 +103,61 @@ def _render_linkage(ax,x0,y0,x1,y1,r,color):
 
 
 
-def _render_robot(ax,x,y,a,b,c):
-	_render_linkage(ax,x,y,x+math.cos(a)*(ROBOT_L1_LENGTH-ROBOT_L1_RADIUS)*SCALE,y+math.sin(a)*(ROBOT_L1_LENGTH-ROBOT_L1_RADIUS)*SCALE,ROBOT_L1_RADIUS,"#1f77b4")
-	_render_linkage(ax,x,y,x+math.cos(b)*ROBOT_L2_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE,ROBOT_L2_RADIUS,"#2ca02c")
-	_render_linkage(ax,x+math.cos(b)*ROBOT_L2_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE,x+math.cos(b)*ROBOT_L2_LENGTH*SCALE-math.cos(b+c)*ROBOT_L3_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE-math.sin(b+c)*ROBOT_L3_LENGTH*SCALE,ROBOT_L3_RADIUS,"#d62728")
+def _generate_arrow(ax,cx,cy,r,a,b):
+	x=[]
+	y=[]
+	if (b is not None):
+		b=(b-a)/CURVE_POINTS
+		for i in range(0,CURVE_POINTS+1):
+			x.append(cx+math.cos(a)*r*SCALE)
+			y.append(cy+math.sin(a)*r*SCALE)
+			a+=b
+		ax.plot(x[:-1],y[:-1],"-",color="#000000")
+	else:
+		x.append(cx)
+		x.append(cx+math.cos(a)*r*SCALE)
+		y.append(cy)
+		y.append(cy+math.sin(a)*r*SCALE)
+		print(x,y)
+	ax.arrow(x[-2],y[-2],x[-1]-x[-2],y[-1]-y[-2],length_includes_head=True,head_width=0.03,head_length=0.04,color="#000000")
+
+
+
+def _draw_annotations(ax,i,points,angles):
+	margin=0.3
+	scale=0.75
+	straight_offset=0.5
+	straight_length=0.75
+	if (not i):
+		_generate_arrow(ax,*points[0],ROBOT_L1_LENGTH*scale,margin,angles[0]-margin)
+	elif (i==1):
+		_generate_arrow(ax,*points[2],ROBOT_L2_LENGTH/scale,angles[1]+math.pi+margin,angles[1]+math.pi-margin)
+	elif (i==2):
+		_generate_arrow(ax,*points[2],ROBOT_L3_LENGTH/scale,angles[1]+angles[2]+math.pi+margin,angles[1]+angles[2]+math.pi-margin)
+	elif (i==3):
+		_generate_arrow(ax,*points[0],ROBOT_L2_LENGTH/scale,angles[1]+margin,angles[1]-margin)
+		_generate_arrow(ax,points[0][0]-(straight_length+straight_offset)*SCALE,points[0][1],straight_length,0,None)
+	elif (i==4):
+		_generate_arrow(ax,*points[0],ROBOT_L1_LENGTH*scale,angles[0]+margin,angles[0]+3*margin)
+	elif (i==5):
+		_generate_arrow(ax,*points[2],ROBOT_L2_LENGTH/scale,angles[1]+math.pi+margin,angles[1]+math.pi-margin)
+	elif (i==6):
+		_generate_arrow(ax,*points[2],ROBOT_L2_LENGTH/scale,angles[1]+math.pi+margin,angles[1]+math.pi-margin)
+		_generate_arrow(ax,points[1][0]+straight_offset*scale*SCALE,points[1][1],straight_length*scale,0,None)
+	elif (i==7):
+		_generate_arrow(ax,*points[2],ROBOT_L3_LENGTH/scale,angles[1]+angles[2]+math.pi+margin,angles[1]+angles[2]+math.pi-margin)
+	elif (i==8):
+		_generate_arrow(ax,*points[0],ROBOT_L2_LENGTH,angles[1]-margin,-math.pi-margin)
+		_generate_arrow(ax,points[0][0],points[0][1]+(straight_length+straight_offset)*SCALE,straight_length,-math.pi/2,None)
+
+
+
+def _render_robot(ax,x,y,a,b,c,i):
+	points=[(x,y),(x+math.cos(a)*(ROBOT_L1_LENGTH-ROBOT_L1_RADIUS)*SCALE,y+math.sin(a)*(ROBOT_L1_LENGTH-ROBOT_L1_RADIUS)*SCALE),(x+math.cos(b)*ROBOT_L2_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE),(x+math.cos(b)*ROBOT_L2_LENGTH*SCALE-math.cos(b+c)*ROBOT_L3_LENGTH*SCALE,y+math.sin(b)*ROBOT_L2_LENGTH*SCALE-math.sin(b+c)*ROBOT_L3_LENGTH*SCALE)]
+	_render_linkage(ax,*points[0],*points[1],ROBOT_L1_RADIUS,"#1f77b4")
+	_render_linkage(ax,*points[0],*points[2],ROBOT_L2_RADIUS,"#2ca02c")
+	_render_linkage(ax,*points[2],*points[3],ROBOT_L3_RADIUS,"#d62728")
+	_draw_annotations(ax,i,points,[a,b,c])
 
 
 
@@ -118,7 +169,7 @@ for i in range(0,9):
 	ax.fill(*_generate_stair_path(x,y),color="#7f7f7f",alpha=0.5)
 	ax.plot(*_generate_stair_path(x,y),"-",color="#7f7f7f")
 	rx,ry,ra,rb,rc=ROBOT_POSITIONS[i]
-	_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc)
+	_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,i)
 ax.plot([1,1],[0,3],"-",color="#000000",lw=0.8)
 ax.plot([2,2],[0,3],"-",color="#000000",lw=0.8)
 ax.plot([0,3],[1,1],"-",color="#000000",lw=0.8)
