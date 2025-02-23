@@ -30,10 +30,10 @@ typedef union __attribute__((packed)) _PACKET{
 		uint8_t type;
 		union __attribute__((packed)){
 			struct __attribute__((packed)){
-				uint8_t wheel_left; // 180
-				uint8_t wheel_right; // 180
-				uint8_t linkage_middle; // 180
-				uint8_t linkage_final; // 90
+				uint8_t wheel_left; // 128
+				uint8_t wheel_right; // 128
+				uint8_t linkage_middle; // 128
+				uint8_t linkage_final; // 64
 			} manual_input;
 		};
 	};

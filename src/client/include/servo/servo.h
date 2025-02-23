@@ -14,13 +14,13 @@
 
 
 
-#define SERVO_MIN_PULSE_US 600
-#define SERVO_US_PER_DEGREE 10
+#define SERVO_MIN_PULSE_US 500
+#define SERVO_MAX_PULSE_US 2500
 
 
 
-static inline void servo_set_angle(uint8_t pin,uint8_t angle){
-	pwm_set_pulse_width_us(pin,SERVO_MIN_PULSE_US+SERVO_US_PER_DEGREE*((uint16_t)(angle>180?180:angle)));
+static inline void servo_set_ticks(uint8_t pin,uint8_t ticks){
+	pwm_set_pulse_width_us(pin,SERVO_MIN_PULSE_US+((((uint32_t)(ticks>128?128:ticks))*(SERVO_MAX_PULSE_US-SERVO_MIN_PULSE_US))>>7));
 }
 
 

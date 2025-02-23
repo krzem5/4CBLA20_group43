@@ -26,10 +26,10 @@
 
 
 static uint32_t _flags=0;
-static uint8_t _manual_control_left_wheel=90;
-static uint8_t _manual_control_right_wheel=90;
-static uint8_t _manual_control_linkage_middle=90;
-static uint16_t _manual_control_linkage_final=900;
+static uint8_t _manual_control_left_wheel=64;
+static uint8_t _manual_control_right_wheel=64;
+static uint8_t _manual_control_linkage_middle=64;
+static uint16_t _manual_control_linkage_final=640;
 
 
 
@@ -135,46 +135,46 @@ static void _process_controller_command(ds4_device_t* controller){
 	float q=controller->ly/100.0f;
 	float r=hypotf(p,q);
 	if (r<0.3f){
-		_manual_control_left_wheel=90;
-		_manual_control_right_wheel=90;
+		_manual_control_left_wheel=64;
+		_manual_control_right_wheel=64;
 	}
 	else{
-		int8_t u=(r>1.0f?1.0f:r)*90;
-		int8_t v=(q*q-p*p)/r*90*(r>1.0f?1/r:1.0f);
+		int8_t u=(r>1.0f?1.0f:r)*64;
+		int8_t v=(q*q-p*p)/r*64*(r>1.0f?1/r:1.0f);
 		if (p>=0){
 			if (q>=0){
-				_manual_control_left_wheel=90+u;
-				_manual_control_right_wheel=90+v;
+				_manual_control_left_wheel=64+u;
+				_manual_control_right_wheel=64+v;
 			}
 			else{
-				_manual_control_left_wheel=90-v;
-				_manual_control_right_wheel=90-u;
+				_manual_control_left_wheel=64-v;
+				_manual_control_right_wheel=64-u;
 			}
 		}
 		else{
 			if (q>=0){
-				_manual_control_left_wheel=90+v;
-				_manual_control_right_wheel=90+u;
+				_manual_control_left_wheel=64+v;
+				_manual_control_right_wheel=64+u;
 			}
 			else{
-				_manual_control_left_wheel=90-u;
-				_manual_control_right_wheel=90-v;
+				_manual_control_left_wheel=64-u;
+				_manual_control_right_wheel=64-v;
 			}
 		}
 	}
 	if (controller->buttons&DS4_BUTTON_UP){
-		_manual_control_linkage_middle=45;
+		_manual_control_linkage_middle=32;
 	}
 	else if (controller->buttons&DS4_BUTTON_DOWN){
-		_manual_control_linkage_middle=135;
+		_manual_control_linkage_middle=96;
 	}
 	else{
-		_manual_control_linkage_middle=90;
+		_manual_control_linkage_middle=64;
 	}
 	if ((controller->buttons&DS4_BUTTON_LEFT)&&_manual_control_linkage_final){
 		_manual_control_linkage_final--;
 	}
-	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<900){
+	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<640){
 		_manual_control_linkage_final++;
 	}
 	_send_manual_input_packet();

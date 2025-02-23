@@ -31,12 +31,12 @@ int main(void){
 	sei();
 	serial_init();
 	pwm_init();
-	servo_set_angle(0,90);
-	servo_set_angle(1,90);
-	servo_set_angle(2,90);
-	servo_set_angle(3,90);
-	servo_set_angle(4,90);
-	servo_set_angle(5,90);
+	servo_set_ticks(0,64);
+	servo_set_ticks(1,64);
+	servo_set_ticks(2,64);
+	servo_set_ticks(3,64);
+	servo_set_ticks(4,64);
+	servo_set_ticks(5,64);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)||packet.type==PACKET_TYPE_NONE){
@@ -45,20 +45,20 @@ int main(void){
 		cli();
 		if (packet.type==PACKET_TYPE_ESTOP){
 			pwm_sequencer_stop();
-			servo_set_angle(0,90);
-			servo_set_angle(1,90);
-			servo_set_angle(2,90);
-			servo_set_angle(3,90);
-			servo_set_angle(4,90);
-			servo_set_angle(5,90);
+			servo_set_ticks(0,64);
+			servo_set_ticks(1,64);
+			servo_set_ticks(2,64);
+			servo_set_ticks(3,64);
+			servo_set_ticks(4,64);
+			servo_set_ticks(5,64);
 		}
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
-			servo_set_angle(0,packet.manual_input.wheel_left);
-			servo_set_angle(1,packet.manual_input.wheel_right);
-			servo_set_angle(2,packet.manual_input.linkage_middle);
-			servo_set_angle(3,180-packet.manual_input.linkage_middle);
-			servo_set_angle(4,90-packet.manual_input.linkage_final);
-			servo_set_angle(5,90+packet.manual_input.linkage_final);
+			servo_set_ticks(0,packet.manual_input.wheel_left);
+			servo_set_ticks(1,packet.manual_input.wheel_right);
+			servo_set_ticks(2,packet.manual_input.linkage_middle);
+			servo_set_ticks(3,128-packet.manual_input.linkage_middle);
+			servo_set_ticks(4,64-packet.manual_input.linkage_final);
+			servo_set_ticks(5,64+packet.manual_input.linkage_final);
 		}
 		else if (packet.type==PACKET_TYPE_SEQUENCE_START){
 			pwm_sequencer_start();
