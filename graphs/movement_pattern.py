@@ -79,6 +79,7 @@ def _generate_stair_path(x,y):
 		(STAIR_X_OFFSET+STAIR_1_WIDTH-STAIR_LEDGE_WIDTH,STAIR_Y_OFFSET+STAIR_1_HEIGHT+STAIR_2_HEIGHT),
 		(1/SCALE,STAIR_Y_OFFSET+STAIR_1_HEIGHT+STAIR_2_HEIGHT),
 		(1/SCALE,0),
+		(0,0)
 	]
 	return ([x+e[0]*SCALE for e in points],[y+e[1]*SCALE for e in points])
 
