@@ -20,7 +20,10 @@
 
 
 static inline void servo_set_ticks(uint8_t pin,uint8_t ticks){
-	pwm_set_pulse_width_us(pin,SERVO_MIN_PULSE_US+((((uint32_t)(ticks>128?128:ticks))*125)>>3));
+	if (ticks>128){
+		ticks=128;
+	}
+	pwm_set_pulse_width_us(pin,SERVO_MIN_PULSE_US+(((uint16_t)ticks)<<4)-(ticks>>2)-(ticks>>3));
 }
 
 
