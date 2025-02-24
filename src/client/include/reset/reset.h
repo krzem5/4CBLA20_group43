@@ -25,7 +25,11 @@ void reset_stop(void);
 
 
 
-_Bool reset_is_enabled(void);
+_Bool reset_is_left_enabled(void);
+
+
+
+_Bool reset_is_right_enabled(void);
 
 
 

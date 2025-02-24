@@ -58,14 +58,18 @@ int main(void){
 			servo_set_ticks(5,64);
 		}
 		else if (packet.type==PACKET_TYPE_RESET){
+			pwm_sequencer_stop();
 			reset_start(packet.reset.flags);
 		}
-		else if (reset_is_enabled());
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
 			servo_set_ticks(0,packet.manual_input.wheel_left);
 			servo_set_ticks(1,packet.manual_input.wheel_right);
-			servo_set_ticks(2,packet.manual_input.linkage_middle);
-			servo_set_ticks(3,128-packet.manual_input.linkage_middle);
+			if (!reset_is_left_enabled()){
+				servo_set_ticks(2,packet.manual_input.linkage_middle);
+			}
+			if (!reset_is_right_enabled()){
+				servo_set_ticks(3,128-packet.manual_input.linkage_middle);
+			}
 			servo_set_ticks(4,64-packet.manual_input.linkage_final);
 			servo_set_ticks(5,64+packet.manual_input.linkage_final);
 		}

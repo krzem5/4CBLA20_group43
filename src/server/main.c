@@ -22,6 +22,8 @@
 #define FLAG_EXIT_PROGRAM 1
 #define FLAG_ESTOP_ENABLED 2
 #define FLAG_ESTOP_BUTTON_DOWN 4
+#define FLAG_LEFT_RESET_BUTTON_DOWN 8
+#define FLAG_RIGHT_RESET_BUTTON_DOWN 16
 
 
 
@@ -62,6 +64,19 @@ static void _send_manual_input_packet(void){
 static void _send_sequence_start_packet(void){
 	packet_t packet={
 		.type=PACKET_TYPE_SEQUENCE_START
+	};
+	packet_generate_checksum(&packet);
+	serial_send(&packet,sizeof(packet_t));
+}
+
+
+
+static void _send_reset_packet(uint32_t flags){
+	packet_t packet={
+		.type=PACKET_TYPE_RESET,
+		.reset={
+			.flags=flags
+		}
 	};
 	packet_generate_checksum(&packet);
 	serial_send(&packet,sizeof(packet_t));
@@ -176,6 +191,24 @@ static void _process_controller_command(ds4_device_t* controller){
 	}
 	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<640){
 		_manual_control_linkage_final++;
+	}
+	if (controller->buttons&DS4_BUTTON_L1){
+		if (!(_flags&FLAG_LEFT_RESET_BUTTON_DOWN)){
+			_flags|=FLAG_LEFT_RESET_BUTTON_DOWN;
+			_send_reset_packet(PACKET_RESET_FLAG_LEFT);
+		}
+	}
+	else{
+		_flags&=~FLAG_LEFT_RESET_BUTTON_DOWN;
+	}
+	if (controller->buttons&DS4_BUTTON_R1){
+		if (!(_flags&FLAG_RIGHT_RESET_BUTTON_DOWN)){
+			_flags|=FLAG_RIGHT_RESET_BUTTON_DOWN;
+			_send_reset_packet(PACKET_RESET_FLAG_RIGHT);
+		}
+	}
+	else{
+		_flags&=~FLAG_RIGHT_RESET_BUTTON_DOWN;
 	}
 	_send_manual_input_packet();
 }
