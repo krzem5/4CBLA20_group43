@@ -177,6 +177,14 @@ static void _process_controller_command(ds4_device_t* controller){
 			}
 		}
 	}
+	if (controller->l2>32){
+		_manual_control_left_wheel=64+(controller->l2>>2);
+		_manual_control_right_wheel=64+(controller->l2>>2);
+	}
+	else if (controller->r2>32){
+		_manual_control_left_wheel=64-(controller->r2>>2);
+		_manual_control_right_wheel=64-(controller->r2>>2);
+	}
 	if (controller->buttons&DS4_BUTTON_UP){
 		_manual_control_linkage_middle=32;
 	}
