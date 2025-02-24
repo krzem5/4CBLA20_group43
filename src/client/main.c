@@ -73,7 +73,7 @@ int main(void){
 			servo_set_ticks(4,64-packet.manual_input.linkage_final);
 			servo_set_ticks(5,64+packet.manual_input.linkage_final);
 		}
-		else if (packet.type==PACKET_TYPE_SEQUENCE_START){
+		else if (!reset_is_enabled()&&packet.type==PACKET_TYPE_SEQUENCE_START){
 			pwm_sequencer_start();
 		}
 		sei();
