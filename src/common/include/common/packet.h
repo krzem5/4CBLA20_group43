@@ -20,6 +20,10 @@
 #define PACKET_TYPE_ESTOP 0x01
 #define PACKET_TYPE_MANUAL_INPUT 0x02
 #define PACKET_TYPE_SEQUENCE_START 0x03
+#define PACKET_TYPE_RESET 0x04
+
+#define PACKET_RESET_FLAG_LEFT 0x01
+#define PACKET_RESET_FLAG_RIGHT 0x02
 
 
 
@@ -35,6 +39,9 @@ typedef union __attribute__((packed)) _PACKET{
 				uint8_t linkage_middle; // 128
 				uint8_t linkage_final; // 64
 			} manual_input;
+			struct __attribute__((packed)){
+				uint8_t flags;
+			} reset;
 		};
 	};
 } packet_t;
