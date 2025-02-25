@@ -53,6 +53,8 @@ STEP6_TIME=0.6
 STEP7_TIME=0.7
 STEP8_TIME=0.5
 STEP9_TIME=0.8
+FIRST_ROBOT_POSITION=(STAIR_X_OFFSET-ROBOT_L1_LENGTH-ROBOT_L1_RADIUS,STAIR_Y_OFFSET+ROBOT_L1_RADIUS,0,0,0)
+LAST_ROBOT_POSITION=(STAIR_X_OFFSET-ROBOT_L1_LENGTH-ROBOT_L1_RADIUS+ROBOT_L2_LENGTH*(2-math.cos(alpha))+q,STAIR_Y_OFFSET+ROBOT_L1_RADIUS+ROBOT_L2_LENGTH*(math.sin(alpha)+math.sin(beta)),0,0,0)
 ROBOT_POSITIONS=[
 	(STAIR_X_OFFSET-ROBOT_L1_LENGTH-ROBOT_L1_RADIUS,STAIR_Y_OFFSET+ROBOT_L1_RADIUS,alpha*STEP1_TIME,0,0),
 	(STAIR_X_OFFSET-ROBOT_L1_LENGTH-ROBOT_L1_RADIUS+ROBOT_L2_LENGTH*(1-math.cos(alpha*STEP2_TIME)),STAIR_Y_OFFSET+ROBOT_L1_RADIUS+ROBOT_L2_LENGTH*math.sin(alpha*STEP2_TIME),alpha*(1-STEP2_TIME),-alpha*STEP2_TIME,alpha*STEP2_TIME+gamma),
@@ -164,23 +166,57 @@ def _render_robot(ax,x,y,a,b,c,i):
 
 plt.rcParams["text.usetex"]=True
 fig,ax=plt.subplots(1)
-for i in range(0,9):
-	x,y=i%3,2-i//3
-	ax.text(x+CORNER_TEXT_OFFSET,y+1-CORNER_TEXT_OFFSET,f"${i+1}$",ha="left",va="top",size="xx-large")
-	ax.fill(*_generate_stair_path(x,y),color="#7f7f7f",alpha=0.5)
-	ax.plot(*_generate_stair_path(x,y),"-",color="#7f7f7f")
-	rx,ry,ra,rb,rc=ROBOT_POSITIONS[i]
-	_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,i)
-ax.plot([1,1],[0,3],"-",color="#000000",lw=0.8)
-ax.plot([2,2],[0,3],"-",color="#000000",lw=0.8)
-ax.plot([0,3],[1,1],"-",color="#000000",lw=0.8)
-ax.plot([0,3],[2,2],"-",color="#000000",lw=0.8)
-fig.set_size_inches(9,9,forward=True)
+if (0):
+	for i in range(0,9):
+		x,y=i%3,2-i//3
+		ax.text(x+CORNER_TEXT_OFFSET,y+1-CORNER_TEXT_OFFSET,f"${i+1}$",ha="left",va="top",size="xx-large")
+		ax.fill(*_generate_stair_path(x,y),color="#7f7f7f",alpha=0.5)
+		ax.plot(*_generate_stair_path(x,y),"-",color="#7f7f7f")
+		rx,ry,ra,rb,rc=ROBOT_POSITIONS[i]
+		_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,i)
+	ax.plot([1,1],[0,3],"-",color="#000000",lw=0.8)
+	ax.plot([2,2],[0,3],"-",color="#000000",lw=0.8)
+	ax.plot([0,3],[1,1],"-",color="#000000",lw=0.8)
+	ax.plot([0,3],[2,2],"-",color="#000000",lw=0.8)
+	fig.set_size_inches(9,9,forward=True)
+	ax.set_xlim(xmin=0,xmax=3)
+	ax.set_ylim(ymin=0,ymax=3)
+else:
+	padding=0.2
+	width=15
+	fig.set_size_inches(width,width/(7+2*padding)*(2.5+2*padding),forward=True)
+	for i in range(0,6):
+		x=i*(1+padding)+padding
+		y=1+padding*2
+		ax.fill(*_generate_stair_path(x,y),color="#7f7f7f",alpha=0.5)
+		ax.plot(*_generate_stair_path(x,y),"-",color="#7f7f7f")
+		if (i):
+			ax.text(x+CORNER_TEXT_OFFSET,y+1-CORNER_TEXT_OFFSET,f"${i}$",ha="left",va="top",size="xx-large")
+			rx,ry,ra,rb,rc=ROBOT_POSITIONS[i-1]
+			_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,i-1)
+		else:
+			rx,ry,ra,rb,rc=FIRST_ROBOT_POSITION
+			_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,-1)
+		ax.plot([x,x+1,x+1,x,x],[y,y,y+1,y+1,y],"-",color="#000000",lw=0.8)
+	for i in range(0,5):
+		x=(i+0.5)*(1+padding)+padding
+		y=padding
+		ax.fill(*_generate_stair_path(x,y),color="#7f7f7f",alpha=0.5)
+		ax.plot(*_generate_stair_path(x,y),"-",color="#7f7f7f")
+		if (i<4):
+			ax.text(x+CORNER_TEXT_OFFSET,y+1-CORNER_TEXT_OFFSET,f"${i+6}$",ha="left",va="top",size="xx-large")
+			rx,ry,ra,rb,rc=ROBOT_POSITIONS[i+5]
+			_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,i+5)
+		else:
+			rx,ry,ra,rb,rc=LAST_ROBOT_POSITION
+			_render_robot(ax,rx*SCALE+x,ry*SCALE+y,ra,rb,rc,-1)
+		ax.plot([x,x+1,x+1,x,x],[y,y,y+1,y+1,y],"-",color="#000000",lw=0.8)
+	ax.axis("off")
+	ax.set_xlim(xmin=0,xmax=7+2*padding)
+	ax.set_ylim(ymin=0,ymax=2.5+2*padding)
 ax.set_yticklabels([])
 ax.set_xticklabels([])
 ax.set_xticks([])
 ax.set_yticks([])
-ax.set_xlim(xmin=0,xmax=3)
-ax.set_ylim(ymin=0,ymax=3)
 plt.savefig("movement_pattern.png",dpi=300,bbox_inches="tight")
 plt.show()
