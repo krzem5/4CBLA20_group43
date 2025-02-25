@@ -4,7 +4,6 @@
  * Proprietary and confidential
  * Created on 16/02/2025 by Krzesimir Hyżyk
  */
-// last commit w/ port B scheduler https://github.com/krzem5/4CBLA20_group43/tree/a9eac37e9de94c45057ebfaa40ac0d402c17ee5a
 
 
 
@@ -47,6 +46,7 @@ int main(void){
 			continue;
 		}
 		cli();
+		uint8_t reset_flags=reset_get_flags();
 		if (packet.type==PACKET_TYPE_ESTOP){
 			pwm_sequencer_stop();
 			reset_stop();
@@ -64,16 +64,16 @@ int main(void){
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
 			servo_set_ticks(0,packet.manual_input.wheel_left);
 			servo_set_ticks(1,packet.manual_input.wheel_right);
-			if (!reset_is_left_enabled()){
+			if (!(reset_flags&PACKET_RESET_FLAG_LEFT)){
 				servo_set_ticks(2,packet.manual_input.linkage_middle);
 			}
-			if (!reset_is_right_enabled()){
+			if (!(reset_flags&PACKET_RESET_FLAG_RIGHT)){
 				servo_set_ticks(3,128-packet.manual_input.linkage_middle);
 			}
 			servo_set_ticks(4,64-packet.manual_input.linkage_final);
 			servo_set_ticks(5,64+packet.manual_input.linkage_final);
 		}
-		else if (!reset_is_enabled()&&packet.type==PACKET_TYPE_SEQUENCE_START){
+		else if (!reset_flags&&packet.type==PACKET_TYPE_SEQUENCE_START){
 			pwm_sequencer_start();
 		}
 		sei();

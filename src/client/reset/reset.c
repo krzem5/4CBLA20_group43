@@ -74,18 +74,6 @@ void reset_stop(void){
 
 
 
-_Bool reset_is_enabled(void){
-	return !!_reset_flags;
-}
-
-
-
-_Bool reset_is_left_enabled(void){
-	return !!(_reset_flags&PACKET_RESET_FLAG_LEFT);
-}
-
-
-
-_Bool reset_is_right_enabled(void){
-	return !!(_reset_flags&PACKET_RESET_FLAG_LEFT);
+uint8_t reset_get_flags(void){
+	return _reset_flags;
 }

@@ -25,6 +25,10 @@ void reset_stop(void);
 
 
 
+uint8_t reset_get_flags(void);
+
+
+
 _Bool reset_is_enabled(void);
 
 
