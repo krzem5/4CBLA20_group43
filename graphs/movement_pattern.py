@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 
 
 
+GENERATE_SQUARE=False
+
 CORNER_TEXT_OFFSET=0.025
 SCALE=0.2
 
@@ -166,7 +168,7 @@ def _render_robot(ax,x,y,a,b,c,i):
 
 plt.rcParams["text.usetex"]=True
 fig,ax=plt.subplots(1)
-if (0):
+if (GENERATE_SQUARE):
 	for i in range(0,9):
 		x,y=i%3,2-i//3
 		ax.text(x+CORNER_TEXT_OFFSET,y+1-CORNER_TEXT_OFFSET,f"${i+1}$",ha="left",va="top",size="xx-large")
