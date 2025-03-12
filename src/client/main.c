@@ -38,8 +38,8 @@ int main(void){
 	servo_set_ticks(1,64);
 	servo_set_ticks(2,64);
 	servo_set_ticks(3,64);
-	servo_set_ticks(4,64);
-	servo_set_ticks(5,64);
+	servo_set_ticks(4,0);
+	servo_set_ticks(5,127);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)||packet.type==PACKET_TYPE_NONE){
@@ -54,8 +54,8 @@ int main(void){
 			servo_set_ticks(1,64);
 			servo_set_ticks(2,64);
 			servo_set_ticks(3,64);
-			servo_set_ticks(4,64);
-			servo_set_ticks(5,64);
+			servo_set_ticks(4,0);
+			servo_set_ticks(5,127);
 		}
 		else if (packet.type==PACKET_TYPE_RESET){
 			pwm_sequencer_stop();
