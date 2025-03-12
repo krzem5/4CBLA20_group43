@@ -38,8 +38,8 @@ int main(void){
 	servo_set_ticks(1,64);
 	servo_set_ticks(2,64);
 	servo_set_ticks(3,64);
-	servo_set_ticks(4,0);
-	servo_set_ticks(5,127);
+	servo_set_ticks(4,64);
+	servo_set_ticks(5,64);
 	while (1){
 		packet_t packet;
 		if (!serial_read_packet(&packet)||packet.type==PACKET_TYPE_NONE){
@@ -54,8 +54,8 @@ int main(void){
 			servo_set_ticks(1,64);
 			servo_set_ticks(2,64);
 			servo_set_ticks(3,64);
-			servo_set_ticks(4,0);
-			servo_set_ticks(5,127);
+			servo_set_ticks(4,64);
+			servo_set_ticks(5,64);
 		}
 		else if (packet.type==PACKET_TYPE_RESET){
 			pwm_sequencer_stop();
@@ -63,15 +63,15 @@ int main(void){
 		}
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
 			servo_set_ticks(0,packet.manual_input.wheel_left);
-			servo_set_ticks(1,127-packet.manual_input.wheel_right);
+			servo_set_ticks(1,128-packet.manual_input.wheel_right);
 			if (!(reset_flags&PACKET_RESET_FLAG_LEFT)){
 				servo_set_ticks(2,packet.manual_input.linkage_middle);
 			}
 			if (!(reset_flags&PACKET_RESET_FLAG_RIGHT)){
 				servo_set_ticks(3,128-packet.manual_input.linkage_middle);
 			}
-			servo_set_ticks(4,64-packet.manual_input.linkage_final);
-			servo_set_ticks(5,64+packet.manual_input.linkage_final);
+			servo_set_ticks(4,packet.manual_input.linkage_final);
+			servo_set_ticks(5,128-packet.manual_input.linkage_final);
 		}
 		else if (!reset_flags&&packet.type==PACKET_TYPE_SEQUENCE_START){
 			pwm_sequencer_start();
