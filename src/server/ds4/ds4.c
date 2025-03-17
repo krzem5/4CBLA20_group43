@@ -184,7 +184,6 @@ void ds4_recv(ds4_device_t* device){
 
 
 
-
 void ds4_send(const ds4_device_t* device){
 	if (!device->has_wired_connection){
 		uint8_t buffer[30];

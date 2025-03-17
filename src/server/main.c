@@ -248,7 +248,7 @@ int main(void){
 		}
 	};
 	printf("\x1b[?25l");
-	while (!(_flags&FLAG_EXIT_PROGRAM)&&poll(fds,1+(controller.fd>=0),-1)>=0&&!((fds[0].revents|fds[1].revents)&(POLLERR|POLLHUP|POLLNVAL))){
+	while (!(_flags&FLAG_EXIT_PROGRAM)&&poll(fds,1+(controller.fd>=0),-1)>=0){
 		if (fds[0].revents&POLLIN){
 			_process_terminal_command();
 		}
