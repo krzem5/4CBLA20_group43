@@ -23,7 +23,7 @@ ENCODED_PULSE_TO_ANGLE=lambda x:(x*PWM_SEQUENCER_PULSE_ENCODING_FACTOR-500)*180/
 
 SAMPLE_DELTA=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
 
-LINEAR_PINS=[2]
+LINEAR_PINS=[]
 
 
 
@@ -55,7 +55,7 @@ def compile_sequence(data):
 			else:
 				a,b=points[offset],points[offset+1]
 				if (data[j]["pin_a"] in LINEAR_PINS or data[j]["pin_b"] in LINEAR_PINS):
-					angle=(a[1] if (t-a[0])/(b[0]-a[0])<=0.5 else b[1])
+					angle=(a[1] if (t-a[0])/(b[0]-a[0])<=(0.2 if a[1]>b[1] else 0.5) else b[1])
 				else:
 					angle=(0.5-math.cos((t-a[0])/(b[0]-a[0])*math.pi)/2)*(b[1]-a[1])+a[1]
 			if (data[j]["pin_b"] is None):
