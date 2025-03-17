@@ -31,7 +31,7 @@ static uint32_t _flags=0;
 static uint8_t _manual_control_left_wheel=64;
 static uint8_t _manual_control_right_wheel=64;
 static uint8_t _manual_control_linkage_middle=64;
-static uint16_t _manual_control_linkage_final=640;
+static uint16_t _manual_control_linkage_final=960;
 
 
 
@@ -197,7 +197,7 @@ static void _process_controller_command(ds4_device_t* controller){
 	if ((controller->buttons&DS4_BUTTON_LEFT)&&_manual_control_linkage_final){
 		_manual_control_linkage_final--;
 	}
-	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<640){
+	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<960){
 		_manual_control_linkage_final++;
 	}
 	if (controller->buttons&DS4_BUTTON_L1){
