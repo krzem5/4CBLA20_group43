@@ -65,6 +65,7 @@ MOTION=lambda t:[
 	lambda t:(SX-L1-R1+L2*(2-math.cos(alpha))+q,SY+R1+L2*(math.sin(alpha)+math.sin(math.pi/2-(beta-math.pi/2)*t)),math.asin((H2-L2*math.sin(math.pi/2-(beta-math.pi/2)*t))/(L1-R1)),-math.pi/2+(beta-math.pi/2)*t,0),
 	lambda t:(SX-L1-R1+L2*(2-math.cos(alpha))+q,SY+R1+L2*(math.sin(alpha)+math.sin(beta)),0,beta-math.pi-(math.pi+beta)*t,0)
 ][int(t)](t%1)
+
 GROUND=lambda t,p,x:[
 	lambda t,p,x:(p[0],p[2]),
 	lambda t,p,x:(p[3],p[2]),
@@ -77,6 +78,7 @@ GROUND=lambda t,p,x:[
 	lambda t,p,x:(p[2],p[1]),
 	lambda t,p,x:(x+(SX+W1-LEDGE)*SCALE,p[1]),
 ][int(t)](t%1,p,x)
+
 STAIR_POINTS=[
 	(0,0),
 	(0,SY),
