@@ -57,8 +57,8 @@ MOTION=lambda t:[
 	lambda t:(SX-L1-R1,SY+R1,alpha*t,0,0),
 	lambda t:(SX-L1-R1+L2*(1-math.cos(alpha*t)),SY+R1+L2*math.sin(alpha*t),alpha*(1-t),-alpha*t,alpha*t+gamma),
 	lambda t:(SX-L1-R1+L2*(1-math.cos(alpha)),SY+R1+L2*math.sin(alpha),0,-alpha,alpha*(1-t)),
-	lambda t:(SX-L1-R1+L2*(1-math.cos(alpha))+p,SY+R1+L2*math.sin(alpha),0,-alpha-(2*math.pi-alpha)*t,0),
-	lambda t:(SX-L1-R1+L2*(1-math.cos(alpha))+q,SY+R1+L2*math.sin(alpha),beta*t,0,0),
+	lambda t:(SX-L1-R1+L2*(1-math.cos(alpha))+p*t,SY+R1+L2*math.sin(alpha),0,-alpha-(2*math.pi-alpha)*t,0),
+	lambda t:(SX-L1-R1+L2*(1-math.cos(alpha))+p+(q-p)*t,SY+R1+L2*math.sin(alpha),beta*t,0,0),
 	lambda t:(SX-L1-R1+L2*(2-math.cos(alpha)-math.cos(beta*t))+q,SY+R1+L2*(math.sin(alpha)+math.sin(beta*t)),beta*(1-t),-beta*t,beta*t+gamma),
 	lambda t:(SX-L1-R1+L2*(2-math.cos(alpha)-math.cos(beta+(math.pi/2-beta)*t))+q,SY+R1+L2*(math.sin(alpha)+math.sin(beta+(math.pi/2-beta)*t)),math.asin((H2-L2*math.sin(beta+(math.pi/2-beta)*t))/(L1-R1)),-beta-(math.pi/2-beta)*t,beta+(math.pi/2-beta)*t+gamma),
 	lambda t:(SX-L1-R1+L2*(2-math.cos(alpha))+q,SY+R1+L2*(1+math.sin(alpha)),math.asin((H2-L2)/(L1-R1)),-math.pi/2,math.pi/2*(1-t)),
@@ -139,6 +139,12 @@ def _render_tile(ax,t,dx,dy):
 
 def update(t,ax):
 	plt.cla()
+	ax.set_xlim(xmin=0,xmax=1)
+	ax.set_ylim(ymin=0,ymax=1)
+	ax.set_yticklabels([])
+	ax.set_xticklabels([])
+	ax.set_xticks([])
+	ax.set_yticks([])
 	_render_tile(ax,(t/FPS)%10,0,0)
 
 
@@ -146,11 +152,5 @@ def update(t,ax):
 plt.rcParams["text.usetex"]=True
 fig,ax=plt.subplots(1)
 fig.set_size_inches(3,3,forward=True)
-ax.set_xlim(xmin=0,xmax=1)
-ax.set_ylim(ymin=0,ymax=1)
-ax.set_yticklabels([])
-ax.set_xticklabels([])
-ax.set_xticks([])
-ax.set_yticks([])
 anim=animation.FuncAnimation(fig=fig,func=lambda t:update(t,ax),frames=FPS*10,interval=1000//FPS)
 plt.show()
