@@ -44,7 +44,7 @@ SY=0.25
 W1=1.25
 H1=1.26
 H2=0.86
-LEDGE=0.25
+E=0.25 # ledge
 
 # motion
 alpha=math.asin(H1/L2)
@@ -69,14 +69,14 @@ MOTION=lambda t:[
 GROUND=lambda t,p,x:[
 	lambda t,p,x:(p[0],p[2]),
 	lambda t,p,x:(p[3],p[2]),
-	lambda t,p,x:(min(p[2],x+(SX-LEDGE)*SCALE),p[1]),
-	lambda t,p,x:(x+(SX-LEDGE)*SCALE,p[1]),
-	lambda t,p,x:(x+(SX-LEDGE)*SCALE,p[2]),
-	lambda t,p,x:(max(x+(SX-LEDGE)*SCALE,p[3]),p[2]),
-	lambda t,p,x:(max(x+(SX-LEDGE)*SCALE,p[3]),p[1]),
+	lambda t,p,x:(min(p[2],x+(SX-E)*SCALE),p[1]),
+	lambda t,p,x:(x+(SX-E)*SCALE,p[1]),
+	lambda t,p,x:(x+(SX-E)*SCALE,p[2]),
+	lambda t,p,x:(max(x+(SX-E)*SCALE,p[3]),p[2]),
+	lambda t,p,x:(max(x+(SX-E)*SCALE,p[3]),p[1]),
 	lambda t,p,x:(p[2],p[1]),
 	lambda t,p,x:(p[2],p[1]),
-	lambda t,p,x:(x+(SX+W1-LEDGE)*SCALE,p[1]),
+	lambda t,p,x:(x+(SX+W1-E)*SCALE,p[1]),
 ][int(t)](t%1,p,x)
 
 STAIR_POINTS=[
@@ -84,10 +84,10 @@ STAIR_POINTS=[
 	(0,SY),
 	(SX,SY),
 	(SX,SY+H1),
-	(SX-LEDGE,SY+H1),
+	(SX-E,SY+H1),
 	(SX+W1,SY+H1),
 	(SX+W1,SY+H1+H2),
-	(SX+W1-LEDGE,SY+H1+H2),
+	(SX+W1-E,SY+H1+H2),
 	(1/SCALE,SY+H1+H2),
 	(1/SCALE,0),
 	(0,0)
