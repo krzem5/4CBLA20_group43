@@ -53,10 +53,10 @@ void reset_init(uint8_t left,uint8_t right){
 void reset_start(uint8_t flags){
 	_reset_flags|=flags;
 	if (flags&PACKET_RESET_FLAG_LEFT){
-		servo_set_ticks(_reset_pin_left,32);
+		servo_set_ticks(_reset_pin_left,70);
 	}
 	if (flags&PACKET_RESET_FLAG_RIGHT){
-		servo_set_ticks(_reset_pin_right,96);
+		servo_set_ticks(_reset_pin_right,58);
 	}
 }
 
