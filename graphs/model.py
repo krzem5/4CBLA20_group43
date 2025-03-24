@@ -125,8 +125,9 @@ def _render_tile(ax,t,dx,dy):
 	y=y*SCALE+dy
 	points=[(x,y),(x+math.cos(a)*(L1-R1)*SCALE,y+math.sin(a)*(L1-R1)*SCALE),(x+math.cos(b)*L2*SCALE,y+math.sin(b)*L2*SCALE),(x+math.cos(b)*L2*SCALE-math.cos(b+c)*L3*SCALE,y+math.sin(b)*L2*SCALE-math.sin(b+c)*L3*SCALE)]
 	com=((x+C1*(points[1][0]-x))*M1+(x+C2*(points[2][0]-x))*M2+(points[2][0]+C3*(points[3][0]-points[2][0]))*M3)/(M1+M2+M3)
-	# print(com)
 	l,r=GROUND(t,[e[0] for e in points],dx)
+	if (com<l or com>r):
+		print(t)
 	ax.fill([l,l,r,r],[dy,dy+1,dy+1,dy],color="#9467bd",alpha=0.2)
 	ax.fill(*_generate_stair_path(dx,dy),color="#7f7f7f",alpha=0.5)
 	ax.plot(*_generate_stair_path(dx,dy),"-",color="#7f7f7f")
