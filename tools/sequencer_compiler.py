@@ -53,7 +53,7 @@ def compile_sequence(data):
 			else:
 				a,b=points[offset],points[offset+1]
 				angle=(0.5-math.cos((t-a[0])/(b[0]-a[0])*math.pi)/2)*(b[1]-a[1])+a[1]
-			if (data[j]["pin_b"] is None):
+			if (data[j]["pin_b"] is None and data[j]["pin_a"]!=3):
 				angle=180-angle
 			value=ANGLE_TO_ENCODED_PULSE(angle)
 			if (not i):

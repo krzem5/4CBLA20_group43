@@ -66,5 +66,5 @@ void serial_deinit(void){
 
 
 void serial_send(const void* buffer,unsigned int length){
-	ASSERT(write(_serial_fd,buffer,length)==length);
+	if (write(_serial_fd,buffer,length)!=length);
 }

@@ -198,8 +198,8 @@ static void _process_controller_command(ds4_device_t* controller){
 		_manual_control_linkage_middle=64;
 	}
 	if (controller->buttons&DS4_BUTTON_RIGHT){
-		_manual_control_left_wheel=56;
-		_manual_control_right_wheel=56;
+		_manual_control_left_wheel=57;
+		_manual_control_right_wheel=58;
 	}
 	if ((controller->buttons&DS4_BUTTON_CROSS)&&_manual_control_linkage_final){
 		_manual_control_linkage_final--;
