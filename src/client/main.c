@@ -62,8 +62,8 @@ int main(void){
 			reset_start(packet.reset.flags);
 		}
 		else if (packet.type==PACKET_TYPE_MANUAL_INPUT){
-			servo_set_ticks(0,128-packet.manual_input.wheel_left);
-			servo_set_ticks(1,packet.manual_input.wheel_right);
+			servo_set_ticks(0,packet.manual_input.wheel_left);
+			servo_set_ticks(1,128-packet.manual_input.wheel_right);
 			if (!(reset_flags&PACKET_RESET_FLAG_LEFT)){
 				servo_set_ticks(2,packet.manual_input.linkage_middle);
 			}

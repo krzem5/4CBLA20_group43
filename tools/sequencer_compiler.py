@@ -92,5 +92,5 @@ def compile_and_write_sequence(dst_file_path,data):
 
 
 if (__name__=="__main__"):
-	with open("../data/sequence.json","r") as rf:
-		compile_and_write_sequence("../src/client/include/_sequencer_generated.h",json.loads(rf.read()))
+	with open("data/sequence.json","r") as rf:
+		compile_and_write_sequence("src/client/include/_sequencer_generated.h",json.loads(rf.read()))

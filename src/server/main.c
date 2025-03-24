@@ -142,7 +142,7 @@ static void _process_controller_command(ds4_device_t* controller){
 	if (_flags&FLAG_ESTOP_ENABLED){
 		return;
 	}
-	if (controller->buttons&DS4_BUTTON_CROSS){
+	if (controller->buttons&DS4_BUTTON_SQUARE){
 		_send_sequence_start_packet();
 		return;
 	}
@@ -154,8 +154,8 @@ static void _process_controller_command(ds4_device_t* controller){
 		_manual_control_right_wheel=64;
 	}
 	else{
-		int8_t u=(r>1.0f?1.0f:r)*64;
-		int8_t v=(q*q-p*p)/r*64*(r>1.0f?1/r:1.0f);
+		int8_t u=(r>1.0f?1.0f:r)*48;
+		int8_t v=(q*q-p*p)/r*48*(r>1.0f?1/r:1.0f);
 		if (p>=0){
 			if (q>=0){
 				_manual_control_left_wheel=64+u;
@@ -186,18 +186,25 @@ static void _process_controller_command(ds4_device_t* controller){
 		_manual_control_right_wheel=64-(controller->r2>>2);
 	}
 	if (controller->buttons&DS4_BUTTON_UP){
-		_manual_control_linkage_middle=32;
+		_manual_control_linkage_middle=48;
+	}
+	else if (controller->buttons&DS4_BUTTON_LEFT){
+		_manual_control_linkage_middle=55;
 	}
 	else if (controller->buttons&DS4_BUTTON_DOWN){
-		_manual_control_linkage_middle=96;
+		_manual_control_linkage_middle=80;
 	}
 	else{
 		_manual_control_linkage_middle=64;
 	}
-	if ((controller->buttons&DS4_BUTTON_LEFT)&&_manual_control_linkage_final){
+	if (controller->buttons&DS4_BUTTON_RIGHT){
+		_manual_control_left_wheel=56;
+		_manual_control_right_wheel=56;
+	}
+	if ((controller->buttons&DS4_BUTTON_CROSS)&&_manual_control_linkage_final){
 		_manual_control_linkage_final--;
 	}
-	if ((controller->buttons&DS4_BUTTON_RIGHT)&&_manual_control_linkage_final<960){
+	if ((controller->buttons&DS4_BUTTON_TRIANGLE)&&_manual_control_linkage_final<960){
 		_manual_control_linkage_final++;
 	}
 	if (controller->buttons&DS4_BUTTON_L1){
