@@ -23,6 +23,8 @@ ENCODED_PULSE_TO_ANGLE=lambda x:(x*PWM_SEQUENCER_PULSE_ENCODING_FACTOR-500)*180/
 
 SAMPLE_DELTA=TIMER_TICKS*TIMER_DIVISOR/CPU_FREQ
 
+INVERTED_PINS=[3]
+
 
 
 def compile_sequence(data):
@@ -53,7 +55,7 @@ def compile_sequence(data):
 			else:
 				a,b=points[offset],points[offset+1]
 				angle=(0.5-math.cos((t-a[0])/(b[0]-a[0])*math.pi)/2)*(b[1]-a[1])+a[1]
-			if (data[j]["pin_b"] is None and data[j]["pin_a"]!=3):
+			if (data[j]["pin_b"] is None and data[j]["pin_a"] not in INVERTED_PINS):
 				angle=180-angle
 			value=ANGLE_TO_ENCODED_PULSE(angle)
 			if (not i):

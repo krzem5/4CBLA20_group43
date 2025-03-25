@@ -19,9 +19,12 @@ FILE_PATH="../data/sequence.json"
 
 CHANNELS=[
 	("#1f77b4","1\\textsuperscript{st} linkage"),
-	("#2ca02c","2\\textsuperscript{nd} linkage"),
+	("#ff7f0e","2\\textsuperscript{nd} linkage (right)"),
+	("#2ca02c","2\\textsuperscript{nd} linkage (left)"),
 	("#d62728","3\\textsuperscript{rd} linkage"),
 ]
+
+INVERTED_CHANNELS=[2]
 
 # #1f77b4 #ff7f0e #2ca02c #d62728 #9467bd #8c564b #e377c2 #7f7f7f #bcbd22 #17becf
 
@@ -45,6 +48,9 @@ for i,channel in enumerate(data):
 			t+=DELTA_TIME
 		end_time=max(end_time,t)
 	theoretical_y[i].append(points[-1][1])
+	if (channel["pin_a"] in INVERTED_CHANNELS or channel["pin_b"] in INVERTED_CHANNELS):
+		for j in range(0,len(theoretical_y[i])):
+			theoretical_y[i][j]=180-theoretical_y[i][j]
 theoretical_x=[i*DELTA_TIME for i in range(0,math.ceil(end_time/DELTA_TIME)+1)]
 size_uncompressed=(math.ceil(end_time/sequencer_compiler.SAMPLE_DELTA)+1)*4*len(data)
 data=sequencer_compiler.compile_sequence(data)
@@ -103,6 +109,6 @@ plt.ylabel("Angle $\\left[\\mathrm{deg}\\right]$")
 ax.set_xlim(xmin=0,xmax=end_time+0.04)
 ax.set_yticks(range(0,200,45))
 ax.set_ylim(ymin=-10,ymax=190)
-ax.legend(loc="upper right")
+ax.legend(loc="lower right")
 plt.savefig("kinematics.png",dpi=300,bbox_inches="tight")
 plt.show()
