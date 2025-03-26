@@ -52,6 +52,9 @@ for i,channel in enumerate(data):
 		for j in range(0,len(theoretical_y[i])):
 			theoretical_y[i][j]=180-theoretical_y[i][j]
 theoretical_x=[i*DELTA_TIME for i in range(0,math.ceil(end_time/DELTA_TIME)+1)]
+for i in range(0,len(data)):
+	while (len(theoretical_y[i])<len(theoretical_x)):
+		theoretical_y[i].append(theoretical_y[i][-1])
 size_uncompressed=(math.ceil(end_time/sequencer_compiler.SAMPLE_DELTA)+1)*4*len(data)
 data=sequencer_compiler.compile_sequence(data)
 size_compressed=len(data)

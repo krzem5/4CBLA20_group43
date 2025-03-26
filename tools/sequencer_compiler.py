@@ -35,6 +35,7 @@ def compile_sequence(data):
 		out[i+2]=data[i]["pin_a"]|((data[i]["pin_b"] if data[i]["pin_b"] is not None else data[i]["pin_a"])<<4)
 		points=data[i]["points"]
 		for j in range(0,len(points)):
+			# print(points[j][0]+5)
 			last_time=max(last_time,points[j][0])
 	sample_count=math.ceil(last_time/SAMPLE_DELTA)+1
 	out[0]=channel_count|((sample_count>>8)<<3)
