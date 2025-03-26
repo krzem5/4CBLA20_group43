@@ -18,12 +18,12 @@ import sequencer_compiler
 FILE_PATH="../data/sequence.json"
 
 CHANNELS=[
-	("#1f77b4","1\\textsuperscript{st} linkage"),
-	("#ff7f0e","2\\textsuperscript{nd} linkage (right)"),
-	("#2ca02c","2\\textsuperscript{nd} linkage (left)"),
-	("#d62728","3\\textsuperscript{rd} linkage"),
+	("#1f77b4","1\\textsuperscript{st} servos"),
+	("#2ca02c","2\\textsuperscript{nd} servos"),
+	("#d62728","3\\textsuperscript{rd} servos"),
 ]
 
+DROPPED_CHANNELS=[2]
 INVERTED_CHANNELS=[2]
 
 # #1f77b4 #ff7f0e #2ca02c #d62728 #9467bd #8c564b #e377c2 #7f7f7f #bcbd22 #17becf
@@ -36,7 +36,7 @@ DELTA_TIME=0.001
 
 end_time=0
 with open(FILE_PATH,"r") as rf:
-	data=json.loads(rf.read())
+	data=[e for i,e in enumerate(json.loads(rf.read())) if i not in DROPPED_CHANNELS]
 theoretical_y=[[] for _ in range(0,len(data))]
 for i,channel in enumerate(data):
 	points=channel["points"]
@@ -102,6 +102,7 @@ for i in range(0,channel_count):
 		err=(theoretical_x[k]-x[j])/(x[j+1]-x[j])*(y[i][j+1]-y[i][j])+y[i][j]-theoretical_y[i][k]
 		avg_err+=abs(err)
 		if (abs(err)>abs(max_err)):
+			print(err,i,(theoretical_x[k]-x[j])/(x[j+1]-x[j])*(y[i][j+1]-y[i][j])+y[i][j],y[i][j],y[i][j+1],theoretical_y[i][k],k*DELTA_TIME)
 			max_err=err
 for i in range(0,channel_count):
 	ax.plot(x,y[i],"-",color=CHANNELS[i][0],label=CHANNELS[i][1])
